@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multimodal Skin Lesion Model — Test Case Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --bg-2: #0d121a;
+    --panel: #121924;
+    --panel-2: #18202c;
+    --line: #232e3c;
+    --line-2: #2c3a4a;
+    --ink: #eaf0f7;
+    --muted: #8b98a8;
+    --faint: #6d7d92;
+    --benign: #3ba3e8;      /* clinical blue */
+    --malignant: #fb5a6a;   /* coral, reserved for the malignant class only */
+    --accent: #9b8cff;      /* periwinkle, interactive chrome */
+    --good: #46c26a;
+    --bad: #fb5a6a;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --radius: 16px;
+    --shadow: 0 12px 34px rgba(0,0,0,.42);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background:
+      radial-gradient(1100px 620px at 78% -8%, rgba(155,140,255,.10), transparent 60%),
+      radial-gradient(900px 520px at 8% 0%, rgba(59,163,232,.08), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-family: var(--mono); font-feature-settings: "tnum" 1; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 34px 24px 72px; }
+
+  /* Header */
+  header { margin-bottom: 26px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  header h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 4vw, 42px); line-height: 1.08; letter-spacing: -0.01em; margin: 0 0 10px; }
+  header h1 em { font-style: italic; color: var(--benign); }
+  header p.sub { color: var(--muted); margin: 0; max-width: 640px; font-size: 15.5px; }
+
+  .headstats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .stat { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; min-width: 118px; }
+  .stat .v { font-family: var(--mono); font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+  .stat .l { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+  .stat.hide { display: none; }
+
+  h2.sec { font-family: var(--serif); font-weight: 500; font-size: 21px; margin: 0 0 4px; }
+  .card { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: var(--radius); }
+
+  /* How it works */
+  .how { padding: 24px 26px; margin-bottom: 22px; }
+  .how .lead { color: var(--muted); font-size: 14px; margin: 4px 0 20px; max-width: 760px; }
+  .pipe { display: flex; flex-wrap: wrap; gap: 12px; }
+  .step { flex: 1 1 176px; position: relative; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 15px 16px; }
+  .step .n { font-family: var(--serif); font-style: italic; font-size: 26px; color: var(--faint); line-height: 1; }
+  .step .t { font-weight: 600; margin: 8px 0 5px; font-size: 14.5px; }
+  .step .d { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .step.op { flex: 0 0 22px; align-items: center; justify-content: center; display: flex; background: none; border: none; padding: 0; color: var(--faint); font-family: var(--mono); font-size: 18px; }
+  .how .note { color: var(--muted); font-size: 13.5px; margin: 18px 0 0; max-width: 880px; }
+  .how .note b { color: var(--ink); font-weight: 600; }
+
+  /* Main grid */
+  .grid { display: grid; grid-template-columns: minmax(0,1fr) 348px; gap: 20px; align-items: start; }
+  @media (max-width: 940px) { .grid { grid-template-columns: 1fr; } }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-bottom: 14px; }
+  .toolbar .grp { display: flex; align-items: center; gap: 9px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); }
+  .seg { display: inline-flex; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+  .seg button { background: transparent; color: var(--muted); border: 0; padding: 6px 12px; font-family: var(--sans); font-size: 13px; border-radius: 7px; cursor: pointer; transition: background .16s, color .16s; }
+  .seg button:hover { color: var(--ink); }
+  .seg button.on { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .substats { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .substats b { color: var(--ink); font-family: var(--mono); font-weight: 500; }
+
+  /* Plot */
+  .plotcard { padding: 8px; position: relative; overflow: hidden; }
+  svg.scatter { width: 100%; height: auto; display: block; border-radius: 11px; touch-action: none; }
+  svg.scatter .grid line { stroke: var(--line); stroke-width: .5; }
+  svg.scatter .frame { stroke: var(--line-2); stroke-width: 1; fill: none; }
+  svg.scatter .axlbl { fill: var(--faint); font-family: var(--mono); font-size: 12px; letter-spacing: .04em; }
+  circle.pt { transition: r .1s ease, opacity .16s ease; cursor: pointer; }
+  circle.pt.dim { opacity: .1; }
+  circle.pt.sel { stroke: #fff; stroke-width: 2.5; }
+  circle.pt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { circle.pt, .seg button { transition: none; } }
+
+  .legend { display: flex; gap: 18px; align-items: center; margin-top: 12px; padding: 0 6px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+  .legend .k { display: inline-flex; align-items: center; gap: 7px; }
+  .legend .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .legend .ring { width: 11px; height: 11px; border-radius: 50%; border: 1.6px solid var(--muted); box-sizing: border-box; }
+
+  /* Tooltip */
+  .tip { position: fixed; pointer-events: none; z-index: 30; opacity: 0; transform: translateY(3px); transition: opacity .1s, transform .1s;
+         background: #070a0f; border: 1px solid var(--line-2); border-radius: 12px; padding: 9px; width: 156px; box-shadow: var(--shadow); }
+  .tip img { width: 138px; height: 138px; object-fit: cover; border-radius: 7px; display: block; background: #000; }
+  .tip .cap { font-family: var(--mono); font-size: 11.5px; margin-top: 8px; display: flex; justify-content: space-between; }
+  .tip .cap .k { color: var(--faint); }
+
+  /* Detail panel */
+  .detail { padding: 20px 20px 22px; position: sticky; top: 20px; }
+  .detail .ph { color: var(--faint); font-size: 13.5px; text-align: center; padding: 54px 14px; line-height: 1.6; }
+  .detail .ph .mk { font-family: var(--serif); font-style: italic; font-size: 30px; color: var(--line-2); display: block; margin-bottom: 8px; }
+  .detail h3 { font-family: var(--serif); font-weight: 500; font-size: 19px; margin: 0 0 2px; }
+  .detail .cid { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-bottom: 14px; }
+  .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .imgs figure { margin: 0; }
+  .imgs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 9px; display: block; background: #000; border: 1px solid var(--line); }
+  .imgs figcaption { font-family: var(--mono); font-size: 10.5px; color: var(--faint); text-align: center; margin-top: 5px; letter-spacing: .02em; }
+
+  .verdict { display: flex; gap: 8px; align-items: center; margin: 16px 0 4px; }
+  .pill { font-family: var(--mono); font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; letter-spacing: .02em; }
+  .pill.ben { background: rgba(59,163,232,.16); color: var(--benign); box-shadow: inset 0 0 0 1px rgba(59,163,232,.3); }
+  .pill.mal { background: rgba(251,90,106,.15); color: var(--malignant); box-shadow: inset 0 0 0 1px rgba(251,90,106,.3); }
+  .pill.ok  { background: rgba(70,194,106,.15); color: var(--good); box-shadow: inset 0 0 0 1px rgba(70,194,106,.3); }
+  .pill.no  { background: rgba(251,90,106,.15); color: var(--bad); box-shadow: inset 0 0 0 1px rgba(251,90,106,.3); }
+  .arrow { color: var(--faint); font-family: var(--mono); }
+
+  .prob { margin: 16px 0 6px; }
+  .prob .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--muted); }
+  .prob .top .v { font-family: var(--mono); font-size: 17px; color: var(--ink); }
+  .probbar { position: relative; height: 9px; border-radius: 6px; margin-top: 7px; background: linear-gradient(90deg, rgba(59,163,232,.5), rgba(251,90,106,.5)); }
+  .probbar .fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 6px 0 0 6px; background: linear-gradient(90deg, var(--benign), var(--malignant)); }
+  .probbar .thr { position: absolute; top: -3px; width: 2px; height: 15px; background: #fff; border-radius: 2px; box-shadow: 0 0 0 2px rgba(0,0,0,.5); }
+  .prob .scale { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--faint); margin-top: 5px; }
+
+  .kv { margin-top: 16px; }
+  .kv .r { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .kv .r .k { color: var(--muted); }
+  .kv .r .v { font-family: var(--mono); }
+
+  .banner { margin: 8px; background: #1c1216; border: 1px solid #3a2126; color: #f0b8bc; border-radius: 12px; padding: 18px 20px; font-size: 14px; line-height: 1.6; }
+  .banner code { font-family: var(--mono); background: rgba(0,0,0,.4); padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
+  .foot { color: var(--faint); font-size: 12px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 16px; max-width: 820px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">HAM10000 · held-out test set</div>
+    <h1>Where the model sees <em>benign</em> and <em>malignant</em></h1>
+    <p class="sub">Each point is one dermoscopy lesion the model never saw during training, placed by the features it learned. Hover for a preview, click for the photo, the Grad-CAM, and the prediction.</p>
+    <div class="headstats" id="headstats"></div>
+  </header>
+
+  <section class="card how">
+    <h2 class="sec">How the model works</h2>
+    <p class="lead">Two encoders read the case in parallel, their features are fused, and one layer turns that into a probability.</p>
+    <div class="pipe">
+      <div class="step"><div class="n">1</div><div class="t">Image encoder</div><div class="d">A ResNet50 pretrained on ImageNet, fine-tuned on dermoscopy, maps the 224&times;224 photo to a feature vector.</div></div>
+      <div class="step op">+</div>
+      <div class="step"><div class="n">2</div><div class="t">Metadata encoder</div><div class="d">A small network reads age, sex, and lesion location into its own feature vector.</div></div>
+      <div class="step op">&rarr;</div>
+      <div class="step"><div class="n">3</div><div class="t">Fuse</div><div class="d">The two vectors are concatenated into one combined representation of the lesion.</div></div>
+      <div class="step op">&rarr;</div>
+      <div class="step"><div class="n">4</div><div class="t">Classify</div><div class="d">A final layer outputs P(malignant); a threshold tuned on validation turns it into a label.</div></div>
+    </div>
+    <p class="note">The scatter is that fused vector reduced to two dimensions with <b>PCA</b>, so lesions the model reads as similar sit close together and the benign and malignant groups tend to pull apart. The axes carry no clinical unit on their own, they are just the two directions of largest variation in what the model learned. A clean split is a good sign; cases mixed in the middle are where the model is least certain.</p>
+  </section>
+
+  <main class="grid">
+    <div>
+      <div class="toolbar">
+        <div class="grp">Color
+          <div class="seg" id="colorseg" role="group" aria-label="Color points by">
+            <button data-mode="true" class="on">True label</button>
+            <button data-mode="pred">Prediction</button>
+            <button data-mode="correct">Hit / miss</button>
+          </div>
+        </div>
+        <div class="grp">Show
+          <div class="seg" id="filterseg" role="group" aria-label="Filter points">
+            <button data-f="all" class="on">All</button>
+            <button data-f="malignant">Malignant</button>
+            <button data-f="benign">Benign</button>
+            <button data-f="wrong">Misses</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="substats" id="substats"></div>
+
+      <div class="card plotcard" id="plotcard">
+        <svg class="scatter" id="svg" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Feature-space scatter of held-out test lesions, one point per case"></svg>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <aside class="card detail" id="detail">
+      <div class="ph" id="ph"><span class="mk">&times;</span>Select a point to inspect the lesion, the heatmap, and the model's call.</div>
+    </aside>
+  </main>
+
+  <div class="foot">
+    Research and education project on the public HAM10000 dataset. This is not a diagnostic tool and the predictions shown are not medical advice. Metrics reflect one leakage-free, lesion-grouped split.
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script src="report/data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BASE = "report/";           // images + data live in report/, page sits at repo root
+  var PAD = 58, W = 1000, H = 720;
+  var svg = document.getElementById("svg");
+  var tip = document.getElementById("tip");
+  var detail = document.getElementById("detail");
+  var SVGNS = "http://www.w3.org/2000/svg";
+  var C = { benign: "#3ba3e8", malignant: "#fb5a6a", good: "#46c26a", bad: "#fb5a6a" };
+
+  var colorMode = "true", filterMode = "all", selected = null, DATA = null, META = {};
+
+  function el(n, a) { var e = document.createElementNS(SVGNS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+  function px(v) { return PAD + v * (W - 2 * PAD); }
+  function py(v) { return PAD + (1 - v) * (H - 2 * PAD); }
+
+  function colorOf(d) {
+    if (colorMode === "correct") return d.correct ? C.good : C.bad;
+    return (colorMode === "pred" ? d.pred : d.true) === "malignant" ? C.malignant : C.benign;
+  }
+  function visible(d) {
+    if (filterMode === "all") return true;
+    if (filterMode === "wrong") return !d.correct;
+    return d.true === filterMode;
+  }
+
+  function frame() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var g = el("g", { class: "grid" });
+    for (var i = 1; i < 10; i++) {
+      g.appendChild(el("line", { x1: px(i / 10), y1: PAD, x2: px(i / 10), y2: H - PAD }));
+      g.appendChild(el("line", { x1: PAD, y1: py(i / 10), x2: W - PAD, y2: py(i / 10) }));
+    }
+    svg.appendChild(g);
+    svg.appendChild(el("rect", { class: "frame", x: PAD, y: PAD, width: W - 2 * PAD, height: H - 2 * PAD, rx: 6 }));
+    var xl = el("text", { class: "axlbl", x: W / 2, y: H - 20, "text-anchor": "middle" }); xl.textContent = "feature dim 1  (PCA)"; svg.appendChild(xl);
+    var yl = el("text", { class: "axlbl", x: 20, y: H / 2, "text-anchor": "middle", transform: "rotate(-90 20 " + H / 2 + ")" }); yl.textContent = "feature dim 2  (PCA)"; svg.appendChild(yl);
+  }
+
+  function render() {
+    frame();
+    DATA.forEach(function (d) {
+      var vis = visible(d);
+      var c = el("circle", {
+        class: "pt" + (vis ? "" : " dim") + (selected === d ? " sel" : ""),
+        cx: px(d.x), cy: py(d.y), r: selected === d ? 8.5 : 5.5,
+        fill: colorOf(d), "fill-opacity": .92,
+        stroke: selected === d ? "#fff" : (d.correct ? "none" : "rgba(255,255,255,.6)"),
+        "stroke-width": selected === d ? 2.5 : (d.correct ? 0 : 1.4)
+      });
+      if (vis) {
+        c.setAttribute("tabindex", "0");
+        c.setAttribute("role", "button");
+        c.setAttribute("aria-label", "Case " + d.id + ", " + d.true + ", predicted " + d.pred +
+          ", " + (d.correct ? "correct" : "incorrect"));
+        var pick = function () { selected = d; render(); showDetail(d); };
+        c.addEventListener("mouseenter", function (e) { hover(d, e); c.setAttribute("r", 8.5); });
+        c.addEventListener("mousemove", moveTip);
+        c.addEventListener("mouseleave", function () { tip.style.opacity = 0; c.setAttribute("r", selected === d ? 8.5 : 5.5); });
+        c.addEventListener("focus", function (e) { hover(d, e); });
+        c.addEventListener("blur", function () { tip.style.opacity = 0; });
+        c.addEventListener("click", pick);
+        c.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); }
+        });
+      }
+      svg.appendChild(c);
+    });
+    substats(); legend();
+  }
+
+  function hover(d, e) {
+    tip.innerHTML =
+      '<img src="' + BASE + d.img + '" alt="">' +
+      '<div class="cap"><span class="k">true</span><span>' + d.true + '</span></div>' +
+      '<div class="cap"><span class="k">pred</span><span>' + d.pred + '</span></div>' +
+      '<div class="cap"><span class="k">P(mal)</span><span>' + d.prob.toFixed(2) + '</span></div>';
+    tip.style.opacity = 1; tip.style.transform = "translateY(0)";
+    if (e.clientX != null) { moveTip(e); }
+    else { var r = e.target.getBoundingClientRect(); moveTip({ clientX: r.left, clientY: r.top }); }
+  }
+  function moveTip(e) {
+    var x = e.clientX + 18, y = e.clientY + 18;
+    if (x + 176 > innerWidth) x = e.clientX - 176;
+    if (y + 220 > innerHeight) y = e.clientY - 220;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+
+  function pill(k, t) { return '<span class="pill ' + k + '">' + t + '</span>'; }
+
+  function showDetail(d) {
+    var thr = (META.threshold != null ? META.threshold : 0.5);
+    detail.innerHTML =
+      '<h3>' + (d.true === "malignant" ? "Malignant lesion" : "Benign lesion") + '</h3>' +
+      '<div class="cid">case #' + d.id + ' · ' + d.loc + '</div>' +
+      '<div class="imgs">' +
+        '<figure><img src="' + BASE + d.img + '" alt="dermoscopy photo"><figcaption>dermoscopy</figcaption></figure>' +
+        '<figure><img src="' + BASE + d.cam + '" alt="Grad-CAM heatmap"><figcaption>grad-cam</figcaption></figure>' +
+      '</div>' +
+      '<div class="verdict">' + pill(d.pred === "malignant" ? "mal" : "ben", d.pred) +
+        '<span class="arrow">vs</span>' + pill(d.true === "malignant" ? "mal" : "ben", d.true) +
+        '<span style="flex:1"></span>' + (d.correct ? pill("ok", "hit") : pill("no", "miss")) + '</div>' +
+      '<div class="prob">' +
+        '<div class="top"><span>P(malignant)</span><span class="v">' + d.prob.toFixed(3) + '</span></div>' +
+        '<div class="probbar"><div class="fill" style="width:' + (d.prob * 100).toFixed(1) + '%"></div>' +
+          '<div class="thr" style="left:calc(' + (thr * 100).toFixed(1) + '% - 1px)" title="decision threshold ' + thr + '"></div></div>' +
+        '<div class="scale"><span>0.0 benign</span><span>threshold ' + thr + '</span><span>malignant 1.0</span></div>' +
+      '</div>' +
+      '<div class="kv">' +
+        '<div class="r"><span class="k">age</span><span class="v">' + (d.age == null ? "unknown" : d.age) + '</span></div>' +
+        '<div class="r"><span class="k">sex</span><span class="v">' + d.sex + '</span></div>' +
+        '<div class="r"><span class="k">location</span><span class="v">' + d.loc + '</span></div>' +
+      '</div>';
+  }
+
+  function substats() {
+    var s = DATA.filter(visible), n = s.length;
+    var ok = s.filter(function (d) { return d.correct; }).length;
+    var mal = s.filter(function (d) { return d.true === "malignant"; }).length;
+    document.getElementById("substats").innerHTML =
+      "<span><b>" + n + "</b> shown</span>" +
+      "<span><b>" + (n ? (100 * ok / n).toFixed(1) : "0.0") + "%</b> correct here</span>" +
+      "<span><b>" + mal + "</b> malignant · <b>" + (n - mal) + "</b> benign</span>";
+  }
+
+  function legend() {
+    var lg = document.getElementById("legend");
+    if (colorMode === "correct") {
+      lg.innerHTML =
+        '<span class="k"><i class="dot" style="background:' + C.good + '"></i>hit</span>' +
+        '<span class="k"><i class="dot" style="background:' + C.bad + '"></i>miss</span>';
+    } else {
+      var w = colorMode === "pred" ? "predicted" : "true";
+      lg.innerHTML =
+        '<span class="k"><i class="dot" style="background:' + C.benign + '"></i>' + w + ' benign</span>' +
+        '<span class="k"><i class="dot" style="background:' + C.malignant + '"></i>' + w + ' malignant</span>' +
+        '<span class="k"><i class="ring"></i>ring = misclassified</span>';
+    }
+  }
+
+  function headstats() {
+    if (META.test_auc == null && META.test_accuracy == null) return;
+    var out = "";
+    if (META.test_auc != null) out += chip(META.test_auc.toFixed(3), "test AUC");
+    if (META.test_accuracy != null) out += chip((META.test_accuracy * 100).toFixed(1) + "%", "test accuracy");
+    if (META.test_recall != null) out += chip((META.test_recall * 100).toFixed(1) + "%", "malignant recall");
+    if (META.n_shown != null) out += chip(String(META.n_shown), "cases plotted");
+    document.getElementById("headstats").innerHTML = out;
+  }
+  function chip(v, l) { return '<div class="stat"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>'; }
+
+  function wire(id, attr, set) {
+    var seg = document.getElementById(id);
+    seg.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      [].forEach.call(seg.children, function (c) { c.classList.remove("on"); });
+      b.classList.add("on"); set(b.getAttribute(attr)); render();
+    });
+  }
+
+  function boot(data, meta) {
+    DATA = data; META = meta || {};
+    headstats();
+    wire("colorseg", "data-mode", function (v) { colorMode = v; });
+    wire("filterseg", "data-f", function (v) { filterMode = v; });
+    render();
+  }
+
+  function fail() {
+    detail.innerHTML = "";
+    document.getElementById("plotcard").innerHTML =
+      '<div class="banner">No case data found. Run the notebook\'s final export cell to generate ' +
+      '<code>report/data.js</code> and <code>report/img/</code>, then reload. Serving over http with only ' +
+      '<code>report/data.json</code> also works.</div>';
+    document.getElementById("legend").innerHTML = "";
+  }
+
+  if (window.REPORT_DATA && window.REPORT_DATA.length) {
+    boot(window.REPORT_DATA, window.REPORT_META);
+  } else {
+    fetch(BASE + "data.json").then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (d) { if (d && d.length) boot(d, window.REPORT_META); else fail(); })
+      .catch(fail);
+  }
+})();
+</script>
+</body>
+</html>
