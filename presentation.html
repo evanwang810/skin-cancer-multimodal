@@ -75,6 +75,15 @@
   .casemeta .kv { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 4px; }
   .casemeta .kv b { color: var(--ink); }
 
+  /* Feature-space scatter slide */
+  .scatterwrap { display: flex; gap: 34px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+  svg.presscatter { width: min(52vw, 620px); height: auto; display: block; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; }
+  svg.presscatter .fr { stroke: var(--line-2); stroke-width: 1; fill: none; }
+  .scattermeta { max-width: 320px; }
+  .sclegend { display: flex; gap: 18px; margin-top: 14px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .sclegend span { display: inline-flex; align-items: center; gap: 7px; }
+  .sclegend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
   /* Insight bars (reused pattern) */
   .bars { display: flex; flex-direction: column; gap: 9px; margin-top: 20px; max-width: 640px; }
   .barrow { display: grid; grid-template-columns: 130px 1fr 90px; align-items: center; gap: 12px; font-size: 13px; }
@@ -108,6 +117,7 @@
 <body>
 <div class="progress" id="progress"></div>
 <a class="exitlink" href="index.html">&larr; explorer</a>
+<script src="report/data.js"></script>
 
 <div class="deck" id="deck">
 
@@ -166,7 +176,7 @@
     <div class="flagnote"><span class="m">&#9888;</span><span>The image-only vs. multimodal comparison from this run wasn't saved to a file (notebook outputs were cleared before export) — it lives in the notebook's own printed output, not reproduced here from memory. What follows is the multimodal model's real performance and where it does and doesn't work.</span></div>
   </section>
 
-  <!-- 6: Real example - correct -->
+  <!-- 7: Real example - correct -->
   <section class="slide bg-wash">
     <div class="eyebrow">A real case</div>
     <h2 class="slidetitle">Confidently, correctly malignant</h2>
@@ -183,7 +193,7 @@
     </div>
   </section>
 
-  <!-- 7: Real example - wrong, the honesty slide -->
+  <!-- 8: Real example - wrong, the honesty slide -->
   <section class="slide bg-wash">
     <div class="eyebrow">A real case</div>
     <h2 class="slidetitle">Confidently, incorrectly benign</h2>
@@ -200,7 +210,24 @@
     </div>
   </section>
 
-  <!-- 8: Insight - age -->
+  <!-- 6: Feature space (moved earlier so the scatter sits right after headline numbers) -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Under the hood</div>
+    <h2 class="slidetitle">What the fused features actually look like</h2>
+    <div class="scatterwrap">
+      <svg class="presscatter" id="presScatter" viewBox="0 0 640 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="PCA scatter of all 500 test-case feature vectors, colored by true diagnosis"></svg>
+      <div class="scattermeta">
+        <p class="lede" style="font-size:14.5px;">Each point is one of the 500 test lesions — its fused image+metadata vector, reduced to 2D with <b>PCA</b>. No clinical unit on the axes; they're just the two directions of largest variation in what the model learned.</p>
+        <div class="sclegend">
+          <span><i style="background:var(--benign)"></i>benign</span>
+          <span><i style="background:var(--malignant)"></i>malignant</span>
+        </div>
+        <p class="lede" style="font-size:13px; margin-top:14px;">The two colors mostly separate into their own regions — a sign the model learned a real decision boundary, not noise. The cases in the mixed middle are where it's least certain.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9: Insight - age -->
   <section class="slide bg-wash">
     <div class="eyebrow">Insight</div>
     <h2 class="slidetitle">Age carries real signal — and a real weakness</h2>
@@ -212,7 +239,7 @@
     <p class="lede" style="margin-top:18px; font-size:14px;">Younger malignant lesions are rarer in this data and get caught less often — the harder case, not the common one.</p>
   </section>
 
-  <!-- 9: Insight - location -->
+  <!-- (fix numbering) Insight - location -->
   <section class="slide bg-wash">
     <div class="eyebrow">Insight</div>
     <h2 class="slidetitle">Recall depends on where the lesion is</h2>
@@ -226,7 +253,19 @@
     <p class="lede" style="margin-top:18px; font-size:14px;">Abdomen recall (20%, n=10 malignant) is the weakest reliable signal in the data — a real gap, not noise, though still a small sample.</p>
   </section>
 
-  <!-- 10: Insight - calibration -->
+  <!-- 10: Insight - sex -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Insight</div>
+    <h2 class="slidetitle">A recall gap by sex, observed but not explained</h2>
+    <p class="lede">Malignant recall is <b>85.2%</b> for male patients versus <b>71.6%</b> for female patients in this sample — a 14-point gap.</p>
+    <div class="bars">
+      <div class="barrow"><div class="lbl">male (n=282)</div><div class="track"><div class="fill" style="width:85.2%"></div></div><div class="val">85.2%</div></div>
+      <div class="barrow"><div class="lbl">female (n=218)</div><div class="track"><div class="fill" style="width:71.6%"></div></div><div class="val">71.6%</div></div>
+    </div>
+    <div class="flagnote"><span class="m">&#9888;</span><span>This is an observed pattern in one 500-case sample, not a demonstrated cause. It could reflect which lesion types are more common by sex in this dataset rather than the model treating sexes differently — worth investigating further, not worth overclaiming.</span></div>
+  </section>
+
+  <!-- 12: Insight - calibration -->
   <section class="slide bg-wash">
     <div class="eyebrow">Insight</div>
     <h2 class="slidetitle">Confidence isn't proof</h2>
@@ -238,7 +277,7 @@
     </div>
   </section>
 
-  <!-- 11: Limitations -->
+  <!-- 13: Limitations -->
   <section class="slide bg-wash">
     <div class="eyebrow">Limitations &amp; next steps</div>
     <h2 class="slidetitle">What this isn't, yet</h2>
@@ -250,7 +289,7 @@
     </ul>
   </section>
 
-  <!-- 12: Closing -->
+  <!-- 14: Closing -->
   <section class="slide bg-wash">
     <div class="eyebrow">Explore it yourself</div>
     <h1 class="big">Every number here is <em>clickable</em></h1>
@@ -277,6 +316,29 @@
   var total = slides.length;
   var current = 1;
   document.getElementById("tot").textContent = total;
+
+  function drawScatter() {
+    var svg = document.getElementById("presScatter");
+    var data = window.REPORT_DATA;
+    if (!svg || !data || !data.length) return;
+    var SVGNS = "http://www.w3.org/2000/svg";
+    var W = 640, H = 460, PAD = 20;
+    function px(v) { return PAD + v * (W - 2 * PAD); }
+    function py(v) { return PAD + (1 - v) * (H - 2 * PAD); }
+    function el(n, a) { var e = document.createElementNS(SVGNS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+    svg.appendChild(el("rect", { class: "fr", x: PAD, y: PAD, width: W - 2 * PAD, height: H - 2 * PAD, rx: 6 }));
+    var css = getComputedStyle(document.documentElement);
+    var benign = css.getPropertyValue("--benign").trim();
+    var malignant = css.getPropertyValue("--malignant").trim();
+    data.forEach(function (d) {
+      svg.appendChild(el("circle", {
+        cx: px(d.x), cy: py(d.y), r: 4,
+        fill: d.true === "malignant" ? malignant : benign,
+        "fill-opacity": 0.82
+      }));
+    });
+  }
+  drawScatter();
 
   function show(n) {
     if (n < 1) n = 1;

@@ -23,8 +23,12 @@ Live site: **https://evanwang810.github.io/skin-cancer-multimodal/**
 - `insights.html` — real patterns mined from the 500 cases: how malignancy rate
   and recall shift with age, which anatomical sites the model struggles with,
   a sex-based recall gap, and how often the model is confidently wrong.
-- `presentation.html` — a 12-slide walkthrough (arrow keys / click to advance)
-  covering the method, real example cases, and the same findings.
+- `presentation.html` — a 14-slide walkthrough (arrow keys / click to advance)
+  covering the method, a real PCA feature-space scatter, real example cases,
+  and the mined findings (age, location, sex, calibration).
+- `presentation.pptx` — the same deck as an actual PowerPoint file (native
+  charts, embedded case images), for anyone who wants to present it without
+  a browser or drop it into Google Slides / Keynote.
 
 All three pages read `report/*.js` (embedded as JS globals), so they work via a
 plain double-click with no server — `report/*.json` is the same data for anyone
