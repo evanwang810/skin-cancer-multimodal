@@ -338,8 +338,9 @@
       "These final numbers are on the <b>full held-out test set</b> (" + td.n + " images, " + tdMalPct +
       "% malignant) &mdash; the natural, imbalanced distribution. The 500 cases in the explorer and the rest of this page are <b>force-balanced " +
       Math.round(100 * dd.n_malignant / dd.n) + "/" + Math.round(100 * (dd.n - dd.n_malignant) / dd.n) +
-      "</b> so both classes are actually visible in the scatter. Accuracy on a balanced set reads <b>lower</b> than on the real 80/20 split " +
-      "(you can't coast on the benign majority), which is a big part of why 80% looks modest &mdash; AUC, which ignores class balance, is the fairer headline.";
+      "</b> so both classes are actually visible in the scatter. Balancing the <i>display</i> doesn't change the model &mdash; it only changes which cases you see. " +
+      "The accuracy and AUC above are the model's real performance; the decision threshold is tuned for a balanced sensitivity/specificity trade-off rather than to maximize raw accuracy, " +
+      "so the accuracy number understates how far it could be traded up by accepting more missed cancers. <b>AUC</b>, which ignores both class balance and the threshold, is the fairer single headline.";
     host.appendChild(note);
   }
 
