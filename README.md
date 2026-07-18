@@ -8,16 +8,27 @@ compares them.
 Nothing to install or download by hand — open the notebook in Google Colab, set
 the runtime to **GPU**, and run it top to bottom.
 
+Live site: **https://evanwang810.github.io/skin-cancer-multimodal/**
+
 ## Files
 - `skin_cancer_multimodal.ipynb` — the whole thing.
 - `outputs/` — model checkpoints (created when you run `save_model(...)`).
-- `report/` + `skin_cancer_report.zip` — the exported test-case results (images,
-  Grad-CAM overlays, predictions). Produced by the last cell.
-- `index.html` — the interactive showcase (project root, so it can serve as a
-  GitHub Pages site). Open it after running the last cell to browse the ~500 test
-  lesions on a feature-space scatter: hover for a preview, click for the photo,
-  Grad-CAM, and prediction. It reads `report/data.js` (+ images), which the last
-  cell writes, so a plain double-click works with no server.
+- `report/` + `skin_cancer_report.zip` — the exported test-case results: images,
+  Grad-CAM overlays, predictions (`data.json`/`data.js`), and the mined findings
+  (`insights.json`/`insights.js`). Produced by the notebook's export cell.
+- `index.html` — the **Explorer**: browse the ~500 test lesions on a
+  feature-space scatter or a sortable/filterable table, with CSV/JSON export of
+  whatever's currently filtered. Click a case for the photo, Grad-CAM, and
+  prediction.
+- `insights.html` — real patterns mined from the 500 cases: how malignancy rate
+  and recall shift with age, which anatomical sites the model struggles with,
+  a sex-based recall gap, and how often the model is confidently wrong.
+- `presentation.html` — a 12-slide walkthrough (arrow keys / click to advance)
+  covering the method, real example cases, and the same findings.
+
+All three pages read `report/*.js` (embedded as JS globals), so they work via a
+plain double-click with no server — `report/*.json` is the same data for anyone
+who'd rather load it over http or parse it directly.
 
 ## What it does
 1. Loads HAM10000 and buckets the 7 diagnoses into benign / malignant.

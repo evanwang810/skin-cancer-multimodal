@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multimodal Skin Lesion Model — Presentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14; --bg-2: #0d121a; --panel: #121924; --panel-2: #18202c;
+    --line: #232e3c; --line-2: #2c3a4a; --ink: #eaf0f7; --muted: #8b98a8; --faint: #6d7d92;
+    --benign: #3ba3e8; --malignant: #fb5a6a; --accent: #9b8cff; --good: #46c26a; --bad: #fb5a6a;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-family: var(--mono); font-feature-settings: "tnum" 1; }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(28px, 5vw, 80px) clamp(28px, 8vw, 120px);
+    opacity: 0; visibility: hidden; transition: opacity .35s ease;
+  }
+  .slide.active { opacity: 1; visibility: visible; }
+  .slide.bg-wash { background: radial-gradient(1100px 620px at 78% -8%, rgba(155,140,255,.10), transparent 60%),
+                               radial-gradient(900px 520px at 8% 0%, rgba(59,163,232,.08), transparent 55%), var(--bg); }
+
+  .eyebrow { font-family: var(--mono); font-size: clamp(11px,1.1vw,13px); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  h1.big { font-family: var(--serif); font-weight: 600; font-size: clamp(34px, 5.4vw, 68px); line-height: 1.06; letter-spacing: -0.01em; margin: 0 0 18px; max-width: 15ch; }
+  h1.big em { font-style: italic; color: var(--benign); }
+  h2.slidetitle { font-family: var(--serif); font-weight: 500; font-size: clamp(24px, 3.2vw, 38px); line-height: 1.15; margin: 0 0 20px; max-width: 20ch; }
+  p.lede { color: var(--muted); font-size: clamp(15px, 1.5vw, 20px); line-height: 1.6; max-width: 62ch; margin: 0; }
+  p.lede b { color: var(--ink); font-weight: 600; }
+  .credit { color: var(--faint); font-family: var(--mono); font-size: 13px; margin-top: 34px; }
+
+  .card { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: 16px; }
+
+  /* Pipeline (architecture slide) */
+  .pipe { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; max-width: 980px; }
+  .step { flex: 1 1 190px; padding: 18px 18px; }
+  .step .n { font-family: var(--serif); font-style: italic; font-size: 28px; color: var(--faint); }
+  .step .t { font-weight: 600; font-size: 15px; margin: 8px 0 5px; }
+  .step .d { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .step.op { flex: 0 0 26px; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 22px; font-family: var(--mono); border: none; background: none; }
+
+  /* Stat row */
+  .statrow { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 26px; }
+  .stat { padding: 16px 22px; min-width: 130px; }
+  .stat .v { font-family: var(--mono); font-size: clamp(26px,3vw,34px); font-weight: 500; }
+  .stat .l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+  .stat.hi .v { color: var(--benign); }
+
+  .flagnote { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; margin-top: 22px; max-width: 640px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--faint); }
+  .flagnote .m { font-family: var(--mono); color: var(--accent); flex: none; }
+
+  /* Example case slides */
+  .casewrap { display: flex; gap: 32px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  .caseimgs { display: flex; gap: 10px; }
+  .caseimgs figure { margin: 0; text-align: center; }
+  .caseimgs img { width: clamp(140px,18vw,220px); height: clamp(140px,18vw,220px); object-fit: cover; border-radius: 12px; border: 1px solid var(--line); display: block; }
+  .caseimgs figcaption { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 6px; }
+  .casemeta { max-width: 420px; }
+  .casetag { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 3px 10px; border-radius: 999px; display: inline-block; margin-bottom: 12px; }
+  .casetag.ok { background: rgba(70,194,106,.15); color: var(--good); }
+  .casetag.no { background: rgba(251,90,106,.15); color: var(--bad); }
+  .casemeta .kv { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .casemeta .kv b { color: var(--ink); }
+
+  /* Insight bars (reused pattern) */
+  .bars { display: flex; flex-direction: column; gap: 9px; margin-top: 20px; max-width: 640px; }
+  .barrow { display: grid; grid-template-columns: 130px 1fr 90px; align-items: center; gap: 12px; font-size: 13px; }
+  .barrow .lbl { color: var(--muted); font-family: var(--mono); font-size: 12.5px; }
+  .barrow .track { position: relative; height: 20px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .barrow .fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--benign); border-radius: 5px 0 0 5px; }
+  .barrow .fill.weak { background: var(--faint); opacity: .55; }
+  .barrow .val { font-family: var(--mono); font-size: 12.5px; text-align: right; }
+  .barrow.unreliable .track { border-style: dashed; }
+
+  ul.limits { margin: 20px 0 0; padding: 0; list-style: none; max-width: 640px; }
+  ul.limits li { position: relative; padding-left: 22px; margin-bottom: 12px; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+  ul.limits li::before { content: "—"; position: absolute; left: 0; color: var(--faint); }
+  ul.limits li b { color: var(--ink); }
+
+  .links { display: flex; gap: 20px; margin-top: 30px; flex-wrap: wrap; }
+  .links a { color: var(--benign); font-family: var(--mono); font-size: 13.5px; text-decoration: none; border-bottom: 1px solid rgba(59,163,232,.35); padding-bottom: 2px; }
+  .links a:hover { border-color: var(--benign); }
+
+  /* Nav */
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); transition: width .3s; z-index: 50; }
+  .navctl { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; z-index: 50; }
+  .navbtn { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+  .navbtn:hover { border-color: var(--line-2); }
+  .navbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cnt { color: var(--faint); font-family: var(--mono); font-size: 12.5px; }
+  .exitlink { position: fixed; top: 16px; right: 20px; z-index: 50; color: var(--faint); font-family: var(--mono); font-size: 12px; text-decoration: none; }
+  .exitlink:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<a class="exitlink" href="index.html">&larr; explorer</a>
+
+<div class="deck" id="deck">
+
+  <!-- 1: Title -->
+  <section class="slide bg-wash active">
+    <div class="eyebrow">HAM10000 &middot; multimodal classification</div>
+    <h1 class="big">Can patient history help a model catch skin cancer?</h1>
+    <p class="lede">An image-plus-metadata classifier for benign vs. malignant skin lesions, evaluated honestly on 500 held-out cases the model never trained on.</p>
+    <div class="credit">github.com/evanwang810/skin-cancer-multimodal</div>
+  </section>
+
+  <!-- 2: The idea -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">The idea</div>
+    <h2 class="slidetitle">A dermoscopy photo isn't the whole story</h2>
+    <p class="lede">A dermatologist doesn't just look at a lesion — they factor in the patient's <b>age</b>, <b>sex</b>, and <b>where on the body</b> it is. Melanoma risk climbs sharply with age; different lesion types cluster on different body sites. An image-only model throws that context away. This project asks whether adding it back — as a second, small encoder fused with the image features — measurably helps.</p>
+  </section>
+
+  <!-- 3: Data & rigor -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Data &amp; method</div>
+    <h2 class="slidetitle">HAM10000, split by lesion — not by image</h2>
+    <p class="lede">10,015 dermoscopy images across 7 diagnoses, collapsed to benign vs. malignant. The dataset has <b>multiple photos of the same lesion</b> — a naive random split can put near-duplicate images of one lesion in both train and test, quietly inflating every metric. This project splits by <b>lesion ID</b> first, 70/15/15, so no lesion crosses the train/val/test boundary.</p>
+    <div class="statrow">
+      <div class="card stat"><div class="v">7&rarr;2</div><div class="l">diagnoses collapsed to benign/malignant</div></div>
+      <div class="card stat"><div class="v">70/15/15</div><div class="l">lesion-grouped split</div></div>
+      <div class="card stat"><div class="v">500</div><div class="l">test cases analyzed here</div></div>
+    </div>
+  </section>
+
+  <!-- 4: Architecture -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Architecture</div>
+    <h2 class="slidetitle">Two encoders, fused, one classifier</h2>
+    <div class="pipe">
+      <div class="card step"><div class="n">1</div><div class="t">Image encoder</div><div class="d">ResNet50, pretrained on ImageNet, fine-tuned on dermoscopy &rarr; feature vector.</div></div>
+      <div class="step op">+</div>
+      <div class="card step"><div class="n">2</div><div class="t">Metadata encoder</div><div class="d">Small MLP over age, sex, lesion location &rarr; its own feature vector.</div></div>
+      <div class="step op">&rarr;</div>
+      <div class="card step"><div class="n">3</div><div class="t">Fuse</div><div class="d">The two vectors are concatenated into one lesion representation.</div></div>
+      <div class="step op">&rarr;</div>
+      <div class="card step"><div class="n">4</div><div class="t">Classify</div><div class="d">One layer &rarr; P(malignant); threshold tuned on the validation set.</div></div>
+    </div>
+  </section>
+
+  <!-- 5: Headline result -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Result</div>
+    <h2 class="slidetitle">On 500 held-out test lesions</h2>
+    <div class="statrow">
+      <div class="card stat hi"><div class="v">0.899</div><div class="l">AUC</div></div>
+      <div class="card stat"><div class="v">80.6%</div><div class="l">accuracy</div></div>
+      <div class="card stat"><div class="v">80.0%</div><div class="l">malignant recall</div></div>
+      <div class="card stat"><div class="v">81.0%</div><div class="l">precision</div></div>
+    </div>
+    <div class="flagnote"><span class="m">&#9888;</span><span>The image-only vs. multimodal comparison from this run wasn't saved to a file (notebook outputs were cleared before export) — it lives in the notebook's own printed output, not reproduced here from memory. What follows is the multimodal model's real performance and where it does and doesn't work.</span></div>
+  </section>
+
+  <!-- 6: Real example - correct -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">A real case</div>
+    <h2 class="slidetitle">Confidently, correctly malignant</h2>
+    <div class="casewrap">
+      <div class="caseimgs">
+        <figure><img src="report/img/96_orig.jpg" alt="dermoscopy photo, case 96"><figcaption>dermoscopy</figcaption></figure>
+        <figure><img src="report/img/96_cam.jpg" alt="Grad-CAM heatmap, case 96"><figcaption>grad-cam</figcaption></figure>
+      </div>
+      <div class="casemeta">
+        <span class="casetag ok">correct</span>
+        <p class="lede">P(malignant) = <b>1.00</b>. The Grad-CAM heat sits on the lesion itself, not the surrounding skin — a sign the model is keying on the right region, not a background artifact.</p>
+        <div class="kv">age <b>65</b> &middot; male &middot; face</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7: Real example - wrong, the honesty slide -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">A real case</div>
+    <h2 class="slidetitle">Confidently, incorrectly benign</h2>
+    <div class="casewrap">
+      <div class="caseimgs">
+        <figure><img src="report/img/330_orig.jpg" alt="dermoscopy photo, case 330"><figcaption>dermoscopy</figcaption></figure>
+        <figure><img src="report/img/330_cam.jpg" alt="Grad-CAM heatmap, case 330"><figcaption>grad-cam</figcaption></figure>
+      </div>
+      <div class="casemeta">
+        <span class="casetag no">missed</span>
+        <p class="lede">This lesion was <b>malignant</b>. The model gave it P(malignant) = <b>0.00</b> — not a borderline call, a confident miss. Cases like this are why recall and error analysis matter more than a single accuracy number.</p>
+        <div class="kv">age <b>50</b> &middot; female &middot; back</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8: Insight - age -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Insight</div>
+    <h2 class="slidetitle">Age carries real signal — and a real weakness</h2>
+    <p class="lede">Malignant rate climbs from <b>18.2%</b> under 30 to <b>74.5%</b> at 75+ in this sample — exactly the epidemiological pattern that gives the metadata encoder something real to use.</p>
+    <div class="bars">
+      <div class="barrow"><div class="lbl">recall, under 30</div><div class="track"><div class="fill" style="width:50%"></div></div><div class="val">50.0%</div></div>
+      <div class="barrow"><div class="lbl">recall, 75+</div><div class="track"><div class="fill" style="width:87.7%"></div></div><div class="val">87.7%</div></div>
+    </div>
+    <p class="lede" style="margin-top:18px; font-size:14px;">Younger malignant lesions are rarer in this data and get caught less often — the harder case, not the common one.</p>
+  </section>
+
+  <!-- 9: Insight - location -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Insight</div>
+    <h2 class="slidetitle">Recall depends on where the lesion is</h2>
+    <div class="bars">
+      <div class="barrow"><div class="lbl">face (n=52)</div><div class="track"><div class="fill" style="width:92.1%"></div></div><div class="val">92.1%</div></div>
+      <div class="barrow"><div class="lbl">lower extr. (n=103)</div><div class="track"><div class="fill" style="width:87.8%"></div></div><div class="val">87.8%</div></div>
+      <div class="barrow"><div class="lbl">back (n=123)</div><div class="track"><div class="fill" style="width:80.6%"></div></div><div class="val">80.6%</div></div>
+      <div class="barrow"><div class="lbl">trunk (n=53)</div><div class="track"><div class="fill" style="width:66.7%"></div></div><div class="val">66.7%</div></div>
+      <div class="barrow"><div class="lbl">abdomen (n=38)</div><div class="track"><div class="fill" style="width:20%"></div></div><div class="val">20.0%</div></div>
+    </div>
+    <p class="lede" style="margin-top:18px; font-size:14px;">Abdomen recall (20%, n=10 malignant) is the weakest reliable signal in the data — a real gap, not noise, though still a small sample.</p>
+  </section>
+
+  <!-- 10: Insight - calibration -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Insight</div>
+    <h2 class="slidetitle">Confidence isn't proof</h2>
+    <p class="lede">On average the model is more confident when it's right than when it's wrong — a sign of reasonable calibration. But of its <b>97 errors</b> on this sample, <b>42 (43%)</b> were confidently wrong, not borderline calls like the case two slides back.</p>
+    <div class="statrow">
+      <div class="card stat"><div class="v">0.42</div><div class="l">avg. confidence, correct</div></div>
+      <div class="card stat"><div class="v">0.26</div><div class="l">avg. confidence, wrong</div></div>
+      <div class="card stat"><div class="v">43%</div><div class="l">of errors, confidently wrong</div></div>
+    </div>
+  </section>
+
+  <!-- 11: Limitations -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Limitations &amp; next steps</div>
+    <h2 class="slidetitle">What this isn't, yet</h2>
+    <ul class="limits">
+      <li><b>Image-only comparison not reproduced here</b> — needs re-running and saving both models' metrics together.</li>
+      <li><b>Small samples at some sites</b> — ear, hand, genital, and "unknown" location have too few cases to trust individually.</li>
+      <li><b>One dataset, one model family</b> — HAM10000 only, ResNet50 only. A Vision Transformer / CLIP-style text-encoded-metadata version is a natural v2, matching the original brief.</li>
+      <li><b>Not a diagnostic tool</b> — a class project on public data, not validated for clinical use.</li>
+    </ul>
+  </section>
+
+  <!-- 12: Closing -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Explore it yourself</div>
+    <h1 class="big">Every number here is <em>clickable</em></h1>
+    <p class="lede">All 500 test cases — image, Grad-CAM, prediction, and metadata — are browsable, filterable, sortable, and exportable.</p>
+    <div class="links">
+      <a href="index.html">Explorer &amp; data table &#8594;</a>
+      <a href="insights.html">Full insights page &#8594;</a>
+      <a href="https://github.com/evanwang810/skin-cancer-multimodal" target="_blank" rel="noopener">Source &amp; notebook &#8594;</a>
+    </div>
+  </section>
+
+</div>
+
+<div class="navctl">
+  <button class="navbtn" id="prevBtn" aria-label="Previous slide">&larr;</button>
+  <span class="cnt"><span id="cur">1</span> / <span id="tot">12</span></span>
+  <button class="navbtn" id="nextBtn" aria-label="Next slide">&rarr;</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var slides = document.querySelectorAll(".slide");
+  var total = slides.length;
+  var current = 1;
+  document.getElementById("tot").textContent = total;
+
+  function show(n) {
+    if (n < 1) n = 1;
+    if (n > total) n = total;
+    current = n;
+    slides.forEach(function (s, i) { s.classList.toggle("active", i === n - 1); });
+    document.getElementById("cur").textContent = n;
+    document.getElementById("progress").style.width = (n / total * 100) + "%";
+  }
+  function next() { show(current + 1); }
+  function prev() { show(current - 1); }
+
+  document.getElementById("nextBtn").addEventListener("click", next);
+  document.getElementById("prevBtn").addEventListener("click", prev);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); next(); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+  });
+  document.addEventListener("click", function (e) {
+    if (e.target.closest(".navctl") || e.target.closest("a")) return;
+    next();
+  });
+  show(1);
+})();
+</script>
+</body>
+</html>

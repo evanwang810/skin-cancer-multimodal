@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multimodal Skin Lesion Model — Insights</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14; --bg-2: #0d121a; --panel: #121924; --panel-2: #18202c;
+    --line: #232e3c; --line-2: #2c3a4a; --ink: #eaf0f7; --muted: #8b98a8; --faint: #6d7d92;
+    --benign: #3ba3e8; --malignant: #fb5a6a; --accent: #9b8cff; --good: #46c26a; --bad: #fb5a6a;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --radius: 16px; --shadow: 0 12px 34px rgba(0,0,0,.42);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: radial-gradient(1100px 620px at 78% -8%, rgba(155,140,255,.10), transparent 60%),
+                radial-gradient(900px 520px at 8% 0%, rgba(59,163,232,.08), transparent 55%), var(--bg);
+    color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  .num { font-family: var(--mono); font-feature-settings: "tnum" 1; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 34px 24px 72px; }
+
+  .topnav { display: flex; align-items: center; gap: 4px; padding: 14px 24px; max-width: 1240px; margin: 0 auto; border-bottom: 1px solid var(--line); }
+  .topnav a { color: var(--muted); text-decoration: none; font-family: var(--mono); font-size: 12.5px; letter-spacing: .03em; padding: 7px 12px; border-radius: 8px; }
+  .topnav a:hover { color: var(--ink); background: var(--panel-2); }
+  .topnav a.on { color: var(--ink); background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--line-2); }
+  .topnav a.ext { margin-left: auto; }
+  .topnav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header { margin-bottom: 26px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  header h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 10px; }
+  header p.sub { color: var(--muted); margin: 0; max-width: 700px; font-size: 15.5px; }
+  .headstats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .stat { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; min-width: 108px; }
+  .stat .v { font-family: var(--mono); font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+  .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+
+  .card { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 26px; margin-bottom: 22px; }
+  h2.sec { font-family: var(--serif); font-weight: 500; font-size: 21px; margin: 0 0 6px; }
+  .finding { color: var(--muted); font-size: 14px; margin: 0 0 18px; max-width: 780px; line-height: 1.6; }
+  .finding b { color: var(--ink); font-weight: 600; }
+  .caveat { display: flex; gap: 8px; align-items: flex-start; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; font-size: 12.5px; color: var(--faint); margin-top: 14px; max-width: 780px; }
+  .caveat .m { color: var(--accent); font-family: var(--mono); flex: none; }
+
+  /* Bars */
+  .bars { display: flex; flex-direction: column; gap: 9px; }
+  .barrow { display: grid; grid-template-columns: 128px 1fr 108px; align-items: center; gap: 12px; font-size: 13px; }
+  .barrow .lbl { color: var(--muted); font-family: var(--mono); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .barrow .track { position: relative; height: 20px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .barrow .fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--benign); border-radius: 5px 0 0 5px; transition: width .5s ease; }
+  .barrow .fill.mal { background: var(--malignant); }
+  .barrow .fill.weak { background: var(--faint); opacity: .55; }
+  .barrow .val { font-family: var(--mono); font-size: 12.5px; color: var(--ink); text-align: right; }
+  .barrow .val small { color: var(--faint); }
+  .barrow.unreliable .lbl, .barrow.unreliable .val { opacity: .5; }
+  .barrow.unreliable .track { border-style: dashed; }
+
+  .twobar { display: flex; gap: 22px; max-width: 480px; }
+  .twobar .col { flex: 1; text-align: center; }
+  .twobar .box { height: 140px; display: flex; align-items: flex-end; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 6px; }
+  .twobar .rise { width: 100%; background: var(--benign); border-radius: 6px 6px 2px 2px; transition: height .5s ease; }
+  .twobar .rise.mut { background: var(--faint); opacity: .6; }
+  .twobar .cap { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+  .twobar .capv { font-family: var(--mono); color: var(--ink); font-size: 15px; }
+
+  /* Gallery */
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  @media (max-width: 880px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
+  .gcard { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .gcard .imgs { display: grid; grid-template-columns: 1fr 1fr; }
+  .gcard img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #000; }
+  .gcard .meta { padding: 10px 12px 12px; }
+  .gcard .tag { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; padding: 2px 8px; border-radius: 999px; display: inline-block; margin-bottom: 6px; }
+  .gcard .tag.ok { background: rgba(70,194,106,.15); color: var(--good); }
+  .gcard .tag.no { background: rgba(251,90,106,.15); color: var(--bad); }
+  .gcard .t { font-weight: 600; font-size: 13.5px; margin: 0 0 3px; }
+  .gcard .d { color: var(--faint); font-size: 12px; font-family: var(--mono); }
+
+  .foot { color: var(--faint); font-size: 12px; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 16px; max-width: 820px; }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="index.html">Explorer</a>
+  <a href="insights.html" class="on">Insights</a>
+  <a href="presentation.html">Presentation</a>
+  <a href="https://github.com/evanwang810/skin-cancer-multimodal" class="ext" target="_blank" rel="noopener">GitHub &#8599;</a>
+</nav>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">HAM10000 · what the data actually shows</div>
+    <h1>Reading the model's mistakes, not just its score</h1>
+    <p class="sub">A single accuracy number hides where a model actually struggles. These are patterns mined directly from the 500 held-out test cases — where the model is strong, where it isn't, and how confidently it gets things wrong.</p>
+    <div class="headstats" id="headstats"></div>
+  </header>
+
+  <section class="card" id="age-section">
+    <h2 class="sec">Age carries real signal — for better and worse</h2>
+    <p class="finding" id="age-finding">Loading…</p>
+    <div class="twobar" id="age-bars"></div>
+  </section>
+
+  <section class="card" id="loc-section">
+    <h2 class="sec">Recall depends heavily on where the lesion is</h2>
+    <p class="finding">Malignant-recall by anatomical site, on this 500-case sample. Sites with fewer than 15 cases or fewer than 8 malignant examples are shown dashed — there isn't enough data there to trust the number.</p>
+    <div class="bars" id="loc-bars"></div>
+    <div class="caveat"><span class="m">&#9888;</span><span>Low sample sizes (dashed bars) mean 100% or 0% for a site can reflect 1–2 lucky or unlucky cases, not a real pattern. Don't read these as clinical claims.</span></div>
+  </section>
+
+  <section class="card" id="sex-section">
+    <h2 class="sec">A recall gap by sex, observed but not explained</h2>
+    <p class="finding" id="sex-finding">Loading…</p>
+    <div class="bars" id="sex-bars"></div>
+    <div class="caveat"><span class="m">&#9888;</span><span>This is an observed pattern in one 500-case sample, not a demonstrated cause. It could reflect which lesion types are more common by sex in this dataset rather than the model treating sexes differently. Worth investigating further, not worth overclaiming.</span></div>
+  </section>
+
+  <section class="card" id="calib-section">
+    <h2 class="sec">The model knows less than its errors admit</h2>
+    <p class="finding" id="calib-finding">Loading…</p>
+    <div class="bars" id="calib-bars"></div>
+  </section>
+
+  <section class="card">
+    <h2 class="sec">Four real cases</h2>
+    <p class="finding">Confident hits and confident misses, pulled directly from the held-out set — not cherry-picked for a good story, picked as the most extreme example of each category.</p>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <div class="foot">
+    All numbers on this page are computed from the 500 exported test-set cases in <code>report/data.json</code>, not the full held-out split. Research and education project on the public HAM10000 dataset — not a diagnostic tool.
+  </div>
+</div>
+
+<script src="report/insights.js"></script>
+<script>
+(function () {
+  "use strict";
+  var BASE = "report/";
+
+  function chip(v, l) { return '<div class="stat"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>'; }
+  function pct(x) { return x == null ? "—" : (x * 100).toFixed(1) + "%"; }
+
+  function renderBar(container, label, value, opts) {
+    opts = opts || {};
+    var row = document.createElement("div");
+    row.className = "barrow" + (opts.unreliable ? " unreliable" : "");
+    var pctVal = value == null ? 0 : value * 100;
+    row.innerHTML =
+      '<div class="lbl">' + label + '</div>' +
+      '<div class="track"><div class="fill' + (opts.malignant ? " mal" : "") + (opts.unreliable ? " weak" : "") + '" style="width:' + pctVal + '%"></div></div>' +
+      '<div class="val">' + (value == null ? "n/a" : pct(value)) + (opts.sub ? ' <small>' + opts.sub + '</small>' : '') + '</div>';
+    container.appendChild(row);
+  }
+
+  function twoCol(container, a, b) {
+    var maxV = Math.max(a.v, b.v, 0.001);
+    container.innerHTML = [a, b].map(function (c) {
+      var h = Math.max(6, Math.round((c.v / maxV) * 120));
+      return '<div class="col"><div class="box"><div class="rise' + (c.mut ? " mut" : "") + '" style="height:' + h + 'px"></div></div>' +
+             '<div class="cap"><span class="capv">' + c.top + '</span><br>' + c.label + '</div></div>';
+    }).join("");
+  }
+
+  function gcard(ex, tag, tagClass, title) {
+    if (!ex) return "";
+    return '<div class="gcard">' +
+      '<div class="imgs"><img src="' + BASE + ex.img + '" alt="dermoscopy"><img src="' + BASE + ex.cam + '" alt="Grad-CAM"></div>' +
+      '<div class="meta"><span class="tag ' + tagClass + '">' + tag + '</span>' +
+      '<div class="t">' + title + '</div>' +
+      '<div class="d">P(mal)=' + ex.prob.toFixed(2) + ' · age ' + ex.age + ' · ' + ex.loc + '</div></div>' +
+    '</div>';
+  }
+
+  function boot(insights) {
+    var o = insights.overall;
+    document.getElementById("headstats").innerHTML =
+      chip(o.n, "cases analyzed") + chip(o.auc.toFixed(3), "AUC") +
+      chip(pct(o.accuracy), "accuracy") + chip(pct(o.recall), "malignant recall");
+
+    // Age
+    var young = insights.by_age[0], old = insights.by_age[insights.by_age.length - 1];
+    document.getElementById("age-finding").innerHTML =
+      'In this sample, the malignant rate climbs from <b>' + pct(young.malignant_rate) + '</b> under age 30 to ' +
+      '<b>' + pct(old.malignant_rate) + '</b> at 75+ — a real epidemiological pattern the metadata encoder can key on. ' +
+      'But the model also <b>catches malignant cases less often in younger patients</b>: recall is ' + pct(young.recall) +
+      ' under 30 versus ' + pct(old.recall) + ' at 75+. Younger malignancies are rarer here and may present less typically.';
+    twoCol(document.getElementById("age-bars"),
+      { v: young.malignant_rate, top: pct(young.malignant_rate), label: "malignant rate,<br>under 30" },
+      { v: old.malignant_rate, top: pct(old.malignant_rate), label: "malignant rate,<br>75+" });
+
+    // Location
+    var locWrap = document.getElementById("loc-bars");
+    insights.by_location.filter(function (l) { return l.n >= 5; }).forEach(function (l) {
+      renderBar(locWrap, l.loc + " (n=" + l.n + ")", l.recall,
+        { unreliable: !l.reliable, sub: l.recall == null ? "" : "" });
+    });
+
+    // Sex
+    var sexWrap = document.getElementById("sex-bars");
+    insights.by_sex.forEach(function (s) { renderBar(sexWrap, s.sex + " (n=" + s.n + ")", s.recall); });
+    var male = insights.by_sex.filter(function (s) { return s.sex === "male"; })[0];
+    var female = insights.by_sex.filter(function (s) { return s.sex === "female"; })[0];
+    document.getElementById("sex-finding").innerHTML =
+      'Malignant recall is <b>' + pct(male.recall) + '</b> for male patients versus <b>' + pct(female.recall) +
+      '</b> for female patients in this sample — a ' + Math.round(Math.abs(male.recall - female.recall) * 100) +
+      '-point gap.';
+
+    // Calibration
+    var c = insights.calibration;
+    var calibWrap = document.getElementById("calib-bars");
+    renderBar(calibWrap, "correct predictions", c.mean_confidence_correct, { sub: "confidence" });
+    renderBar(calibWrap, "wrong predictions", c.mean_confidence_wrong, { sub: "confidence" });
+    document.getElementById("calib-finding").innerHTML =
+      'On average the model is more confident when it\'s right (' + c.mean_confidence_correct.toFixed(2) +
+      ' from the decision boundary) than when it\'s wrong (' + c.mean_confidence_wrong.toFixed(2) +
+      ') — a sign of reasonable calibration. But that\'s an average: <b>' + c.confidently_wrong + ' of its ' +
+      c.n_wrong + ' errors (' + c.confidently_wrong_pct + '%)</b> were confidently wrong, not borderline calls. ' +
+      'A high P(malignant) is evidence, not proof — and the same is true in reverse.';
+
+    // Gallery
+    var ex = insights.examples;
+    document.getElementById("gallery").innerHTML =
+      gcard(ex.confident_correct_malignant, "correct", "ok", "Confidently correct — malignant") +
+      gcard(ex.confident_correct_benign, "correct", "ok", "Confidently correct — benign") +
+      gcard(ex.confidently_missed_malignant, "miss", "no", "Confidently wrong — missed malignant") +
+      gcard(ex.confidently_false_alarm, "miss", "no", "Confidently wrong — false alarm");
+  }
+
+  function fail() {
+    document.querySelector(".wrap").insertAdjacentHTML("beforeend",
+      '<div class="card">Could not load insights data. Regenerate <code>report/insights.js</code> and reload.</div>');
+  }
+
+  if (window.REPORT_INSIGHTS) {
+    boot(window.REPORT_INSIGHTS);
+  } else {
+    fetch(BASE + "insights.json").then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(boot).catch(fail);
+  }
+})();
+</script>
+</body>
+</html>

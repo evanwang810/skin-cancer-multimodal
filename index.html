@@ -147,9 +147,47 @@
   .banner { margin: 8px; background: #1c1216; border: 1px solid #3a2126; color: #f0b8bc; border-radius: 12px; padding: 18px 20px; font-size: 14px; line-height: 1.6; }
   .banner code { font-family: var(--mono); background: rgba(0,0,0,.4); padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
   .foot { color: var(--faint); font-size: 12px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 16px; max-width: 820px; }
+
+  /* Top nav (shared across pages) */
+  .topnav { display: flex; align-items: center; gap: 4px; padding: 14px 24px; max-width: 1240px; margin: 0 auto; border-bottom: 1px solid var(--line); }
+  .topnav a { color: var(--muted); text-decoration: none; font-family: var(--mono); font-size: 12.5px; letter-spacing: .03em; padding: 7px 12px; border-radius: 8px; }
+  .topnav a:hover { color: var(--ink); background: var(--panel-2); }
+  .topnav a.on { color: var(--ink); background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--line-2); }
+  .topnav a.ext { margin-left: auto; }
+  .topnav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .hidden { display: none; }
+
+  /* Export bar */
+  .exportbar { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+  .expbtn { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 12px; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+  .expbtn:hover { border-color: var(--line-2); }
+  .expbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Data table */
+  .tablecard { padding: 0; max-height: 720px; overflow: auto; }
+  table.dt { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.dt thead th { position: sticky; top: 0; background: var(--panel-2); text-align: left; padding: 9px 10px; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); border-bottom: 1px solid var(--line); cursor: pointer; user-select: none; white-space: nowrap; }
+  table.dt thead th:hover { color: var(--ink); }
+  table.dt thead th .arrow { margin-left: 4px; opacity: .7; }
+  table.dt tbody tr { cursor: pointer; }
+  table.dt tbody tr:hover { background: rgba(255,255,255,.03); }
+  table.dt tbody tr.sel { background: rgba(155,140,255,.09); }
+  table.dt td { padding: 8px 10px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12.5px; }
+  table.dt .tbadge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-family: var(--sans); }
+  table.dt .tbadge.ben { background: rgba(59,163,232,.16); color: var(--benign); }
+  table.dt .tbadge.mal { background: rgba(251,90,106,.15); color: var(--malignant); }
+  table.dt .hit { color: var(--good); }
+  table.dt .miss { color: var(--bad); }
 </style>
 </head>
 <body>
+<nav class="topnav">
+  <a href="index.html" class="on">Explorer</a>
+  <a href="insights.html">Insights</a>
+  <a href="presentation.html">Presentation</a>
+  <a href="https://github.com/evanwang810/skin-cancer-multimodal" class="ext" target="_blank" rel="noopener">GitHub &#8599;</a>
+</nav>
 <div class="wrap">
   <header>
     <div class="eyebrow">HAM10000 · held-out test set</div>
@@ -191,6 +229,16 @@
             <button data-f="wrong">Misses</button>
           </div>
         </div>
+        <div class="grp">View
+          <div class="seg" id="viewseg" role="group" aria-label="Switch view">
+            <button data-v="scatter" class="on">Scatter</button>
+            <button data-v="table">Table</button>
+          </div>
+        </div>
+        <div class="exportbar">
+          <button class="expbtn" id="exportCsv" type="button">Download CSV</button>
+          <button class="expbtn" id="exportJson" type="button">Download JSON</button>
+        </div>
       </div>
 
       <div class="substats" id="substats"></div>
@@ -199,6 +247,8 @@
         <svg class="scatter" id="svg" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Feature-space scatter of held-out test lesions, one point per case"></svg>
       </div>
       <div class="legend" id="legend"></div>
+
+      <div class="card tablecard hidden" id="tablecard"></div>
     </div>
 
     <aside class="card detail" id="detail">
@@ -225,7 +275,8 @@
   var SVGNS = "http://www.w3.org/2000/svg";
   var C = { benign: "#3ba3e8", malignant: "#fb5a6a", good: "#46c26a", bad: "#fb5a6a" };
 
-  var colorMode = "true", filterMode = "all", selected = null, DATA = null, META = {};
+  var colorMode = "true", filterMode = "all", viewMode = "scatter", selected = null, DATA = null, META = {};
+  var sortKey = "id", sortDir = 1;
 
   function el(n, a) { var e = document.createElementNS(SVGNS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
   function px(v) { return PAD + v * (W - 2 * PAD); }
@@ -254,7 +305,24 @@
     var yl = el("text", { class: "axlbl", x: 20, y: H / 2, "text-anchor": "middle", transform: "rotate(-90 20 " + H / 2 + ")" }); yl.textContent = "feature dim 2  (PCA)"; svg.appendChild(yl);
   }
 
-  function render() {
+  function currentRows() {
+    var rows = DATA.filter(visible);
+    return rows.slice().sort(function (a, b) {
+      var av = a[sortKey], bv = b[sortKey];
+      if (typeof av === "string") { av = av.toLowerCase(); bv = (bv || "").toLowerCase(); }
+      if (av == null) av = -Infinity;
+      if (bv == null) bv = -Infinity;
+      return av < bv ? -1 * sortDir : av > bv ? 1 * sortDir : 0;
+    });
+  }
+
+  function refresh() {
+    substats();
+    if (viewMode === "table") { renderTable(); }
+    else { renderScatter(); legend(); }
+  }
+
+  function renderScatter() {
     frame();
     DATA.forEach(function (d) {
       var vis = visible(d);
@@ -270,7 +338,7 @@
         c.setAttribute("role", "button");
         c.setAttribute("aria-label", "Case " + d.id + ", " + d.true + ", predicted " + d.pred +
           ", " + (d.correct ? "correct" : "incorrect"));
-        var pick = function () { selected = d; render(); showDetail(d); };
+        var pick = function () { selected = d; refresh(); showDetail(d); };
         c.addEventListener("mouseenter", function (e) { hover(d, e); c.setAttribute("r", 8.5); });
         c.addEventListener("mousemove", moveTip);
         c.addEventListener("mouseleave", function () { tip.style.opacity = 0; c.setAttribute("r", selected === d ? 8.5 : 5.5); });
@@ -283,8 +351,78 @@
       }
       svg.appendChild(c);
     });
-    substats(); legend();
   }
+
+  function renderTable() {
+    var wrap = document.getElementById("tablecard");
+    var rows = currentRows();
+    var cols = [["id", "#"], ["true", "true"], ["pred", "pred"], ["prob", "P(mal)"],
+                ["correct", "result"], ["age", "age"], ["sex", "sex"], ["loc", "location"]];
+    var thead = "<tr>" + cols.map(function (c) {
+      var arrow = sortKey === c[0] ? (sortDir === 1 ? "↑" : "↓") : "";
+      return '<th data-k="' + c[0] + '" tabindex="0" role="button" aria-label="Sort by ' + c[1] + '">' +
+        c[1] + ' <span class="arrow">' + arrow + '</span></th>';
+    }).join("") + "</tr>";
+    var tbody = rows.map(function (d) {
+      return '<tr data-id="' + d.id + '" class="' + (selected === d ? "sel" : "") + '" tabindex="0" role="button">' +
+        '<td>' + d.id + '</td>' +
+        '<td><span class="tbadge ' + (d.true === "malignant" ? "mal" : "ben") + '">' + d.true + '</span></td>' +
+        '<td><span class="tbadge ' + (d.pred === "malignant" ? "mal" : "ben") + '">' + d.pred + '</span></td>' +
+        '<td>' + d.prob.toFixed(3) + '</td>' +
+        '<td class="' + (d.correct ? "hit" : "miss") + '">' + (d.correct ? "hit" : "miss") + '</td>' +
+        '<td>' + (d.age == null ? "—" : d.age) + '</td>' +
+        '<td>' + d.sex + '</td>' +
+        '<td>' + d.loc + '</td>' +
+      '</tr>';
+    }).join("");
+    wrap.innerHTML = rows.length
+      ? '<table class="dt"><thead>' + thead + '</thead><tbody>' + tbody + '</tbody></table>'
+      : '<div class="banner">No cases match this filter.</div>';
+
+    var pickRow = function (d) { selected = d; refresh(); showDetail(d); };
+    [].forEach.call(wrap.querySelectorAll("thead th"), function (th) {
+      var setSort = function () {
+        var k = th.getAttribute("data-k");
+        if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
+        renderTable();
+      };
+      th.addEventListener("click", setSort);
+      th.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSort(); } });
+    });
+    [].forEach.call(wrap.querySelectorAll("tbody tr"), function (tr) {
+      var id = parseInt(tr.getAttribute("data-id"), 10);
+      var d = DATA.filter(function (x) { return x.id === id; })[0];
+      tr.addEventListener("click", function () { pickRow(d); });
+      tr.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickRow(d); } });
+    });
+  }
+
+  function toCSV(rows) {
+    var cols = ["id", "true", "pred", "prob", "correct", "age", "sex", "loc", "x", "y"];
+    var esc = function (v) {
+      v = v == null ? "" : String(v);
+      return (v.indexOf(",") >= 0 || v.indexOf('"') >= 0) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    };
+    var lines = [cols.join(",")];
+    rows.forEach(function (d) { lines.push(cols.map(function (c) { return esc(d[c]); }).join(",")); });
+    return lines.join("\n");
+  }
+
+  function download(filename, content, type) {
+    var blob = new Blob([content], { type: type });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  document.getElementById("exportCsv").addEventListener("click", function () {
+    download("skin-cancer-cases_" + filterMode + ".csv", toCSV(currentRows()), "text/csv");
+  });
+  document.getElementById("exportJson").addEventListener("click", function () {
+    download("skin-cancer-cases_" + filterMode + ".json", JSON.stringify(currentRows(), null, 1), "application/json");
+  });
 
   function hover(d, e) {
     tip.innerHTML =
@@ -371,8 +509,15 @@
     seg.addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
       [].forEach.call(seg.children, function (c) { c.classList.remove("on"); });
-      b.classList.add("on"); set(b.getAttribute(attr)); render();
+      b.classList.add("on"); set(b.getAttribute(attr)); refresh();
     });
+  }
+
+  function setView(v) {
+    viewMode = v;
+    document.getElementById("plotcard").classList.toggle("hidden", v !== "scatter");
+    document.getElementById("legend").classList.toggle("hidden", v !== "scatter");
+    document.getElementById("tablecard").classList.toggle("hidden", v !== "table");
   }
 
   function boot(data, meta) {
@@ -380,7 +525,8 @@
     headstats();
     wire("colorseg", "data-mode", function (v) { colorMode = v; });
     wire("filterseg", "data-f", function (v) { filterMode = v; });
-    render();
+    wire("viewseg", "data-v", setView);
+    refresh();
   }
 
   function fail() {
