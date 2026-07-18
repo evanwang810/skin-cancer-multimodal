@@ -226,6 +226,38 @@
     </div>
   </section>
 
+  <!-- 7: Misses in feature space -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Error analysis</div>
+    <h2 class="slidetitle">Where the misses actually land</h2>
+    <div class="scatterwrap">
+      <svg class="presscatter" id="missScatter" viewBox="0 0 640 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The same feature-space scatter with the model's misclassifications highlighted and correct cases faded."></svg>
+      <div class="scattermeta">
+        <p class="lede" style="font-size:14.5px;">Same feature space, now with the model's mistakes lit up and everything it got right faded back. The errors bunch toward the <b>middle</b>, where the benign and malignant regions overlap — they aren't scattered at random.</p>
+        <div class="sclegend">
+          <span><i style="background:var(--faint)"></i>correct</span>
+          <span><i style="background:var(--malignant)"></i>missed cancer</span>
+          <span><i style="background:var(--benign)"></i>false alarm</span>
+        </div>
+        <p class="lede" style="font-size:13px; margin-top:14px;">That's the honest failure mode: the model struggles precisely where the two classes look alike, not in places that would signal it learned something spurious.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8: Anatomy of the errors -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Error analysis</div>
+    <h2 class="slidetitle">The two kinds of mistake aren't equal</h2>
+    <p class="lede">A missed cancer and a false alarm carry very different costs. On these 500 cases the model made <b id="m-total">&ndash;</b> errors, split almost evenly &mdash; but the ones that matter most, the <b id="m-fn">&ndash;</b> cancers it labeled benign, skew <b>younger</b> than the cancers it caught.</p>
+    <div class="statrow">
+      <div class="card stat"><div class="v" id="m-fn2">&ndash;</div><div class="l">missed cancers (false neg)</div></div>
+      <div class="card stat"><div class="v" id="m-fp">&ndash;</div><div class="l">false alarms (false pos)</div></div>
+      <div class="card stat"><div class="v" id="m-fnage">&ndash;</div><div class="l">avg age, missed cancers</div></div>
+      <div class="card stat"><div class="v" id="m-tpage">&ndash;</div><div class="l">avg age, caught cancers</div></div>
+    </div>
+    <p class="lede" style="margin-top:18px; font-size:14px;">Most-missed sites: <b id="m-locs">&ndash;</b>. A younger patient with a malignant lesion is the case this model is most likely to wave through &mdash; the opposite of who you'd want it most careful with.</p>
+  </section>
+
   <!-- 9: Insight - age -->
   <section class="slide bg-wash">
     <div class="eyebrow">Insight</div>
@@ -338,6 +370,56 @@
     });
   }
   drawScatter();
+
+  function drawMisses() {
+    var svg = document.getElementById("missScatter");
+    var data = window.REPORT_DATA;
+    if (!svg || !data || !data.length) return;
+    var SVGNS = "http://www.w3.org/2000/svg";
+    var W = 640, H = 460, PAD = 20;
+    function px(v) { return PAD + v * (W - 2 * PAD); }
+    function py(v) { return PAD + (1 - v) * (H - 2 * PAD); }
+    function el(n, a) { var e = document.createElementNS(SVGNS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+    svg.appendChild(el("rect", { class: "fr", x: PAD, y: PAD, width: W - 2 * PAD, height: H - 2 * PAD, rx: 6 }));
+    var css = getComputedStyle(document.documentElement);
+    var benign = css.getPropertyValue("--benign").trim();
+    var malignant = css.getPropertyValue("--malignant").trim();
+    var faint = css.getPropertyValue("--faint").trim();
+    // correct first (faded, underneath), then misses on top
+    data.forEach(function (d) {
+      if (d.correct) svg.appendChild(el("circle", { cx: px(d.x), cy: py(d.y), r: 3, fill: faint, "fill-opacity": 0.35 }));
+    });
+    data.forEach(function (d) {
+      if (d.correct) return;
+      var isFN = d.true === "malignant";
+      svg.appendChild(el("circle", {
+        cx: px(d.x), cy: py(d.y), r: 5, fill: isFN ? malignant : benign,
+        "fill-opacity": 0.95, stroke: "rgba(255,255,255,.5)", "stroke-width": 1
+      }));
+    });
+  }
+  drawMisses();
+
+  function computeMisses() {
+    var data = window.REPORT_DATA;
+    if (!data || !data.length) return;
+    function mean(arr) { var v = arr.filter(function (a) { return a != null; }); return v.length ? Math.round(v.reduce(function (s, a) { return s + a; }, 0) / v.length) : "–"; }
+    var misses = data.filter(function (d) { return !d.correct; });
+    var fn = misses.filter(function (d) { return d.true === "malignant"; });
+    var fp = misses.filter(function (d) { return d.true === "benign"; });
+    var caught = data.filter(function (d) { return d.true === "malignant" && d.correct; });
+    var locCount = {};
+    fn.forEach(function (d) { locCount[d.loc] = (locCount[d.loc] || 0) + 1; });
+    var topLocs = Object.keys(locCount).sort(function (a, b) { return locCount[b] - locCount[a]; }).slice(0, 3)
+      .map(function (l) { return l + " (" + locCount[l] + ")"; }).join(", ");
+    function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+    set("m-total", misses.length);
+    set("m-fn", fn.length); set("m-fn2", fn.length); set("m-fp", fp.length);
+    set("m-fnage", mean(fn.map(function (d) { return d.age; })));
+    set("m-tpage", mean(caught.map(function (d) { return d.age; })));
+    set("m-locs", topLocs || "–");
+  }
+  computeMisses();
 
   function show(n) {
     if (n < 1) n = 1;

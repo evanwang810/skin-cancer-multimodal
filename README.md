@@ -19,16 +19,21 @@ Live site: **https://evanwang810.github.io/skin-cancer-multimodal/**
 - `index.html` — the **Explorer**: an annotated diagram of the two-tower
   network, then the ~500 test lesions browsable as a 2D feature-space scatter,
   a rotatable 3D point cloud, or a sortable/filterable table, with CSV/JSON
-  export of whatever's currently filtered. Click a case for the photo,
+  export of whatever's currently filtered. Pick which fields map to the X/Y (and
+  3D depth) axes instead of fixed PCA dims, and color the points by true label,
+  prediction, hit/miss, sex, age, or lesion location. Click a case for the photo,
   Grad-CAM, and prediction. The 3D depth axis is a real third PCA component once
   the notebook is rerun (it exports 3-component PCA); until then it falls back
   to P(malignant), labeled as such.
 - `insights.html` — real patterns mined from the 500 cases: how malignancy rate
   and recall shift with age, which anatomical sites the model struggles with,
-  a sex-based recall gap, and how often the model is confidently wrong.
-- `presentation.html` — a 14-slide walkthrough (arrow keys / click to advance)
-  covering the method, a real PCA feature-space scatter, real example cases,
-  and the mined findings (age, location, sex, calibration).
+  a sex-based recall gap, how often the model is confidently wrong, and — once
+  the notebook is rerun — training-loss/validation-AUC curves and the image-only
+  vs. multimodal comparison table (read from `report/training.js`).
+- `presentation.html` — a 16-slide walkthrough (arrow keys / click to advance)
+  covering the method, a real PCA feature-space scatter, an error-analysis pass
+  (misses in feature space + false-negative/false-positive breakdown), real
+  example cases, and the mined findings (age, location, sex, calibration).
 - `presentation.pptx` — the same deck as an actual PowerPoint file (native
   charts, embedded case images), for anyone who wants to present it without
   a browser or drop it into Google Slides / Keynote.

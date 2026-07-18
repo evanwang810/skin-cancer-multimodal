@@ -93,8 +93,11 @@
   .grid { display: grid; grid-template-columns: minmax(0,1fr) 348px; gap: 20px; align-items: start; }
   @media (max-width: 940px) { .grid { grid-template-columns: 1fr; } }
 
-  .toolbar { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-bottom: 14px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; margin-bottom: 16px; }
   .toolbar .grp { display: flex; align-items: center; gap: 9px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); }
+  .sel { background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); font-family: var(--sans); font-size: 13px; padding: 6px 10px; border-radius: 8px; cursor: pointer; text-transform: none; letter-spacing: 0; }
+  .sel:hover { border-color: var(--line-2); }
+  .sel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .seg { display: inline-flex; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
   .seg button { background: transparent; color: var(--muted); border: 0; padding: 6px 12px; font-family: var(--sans); font-size: 13px; border-radius: 7px; cursor: pointer; transition: background .16s, color .16s; }
   .seg button:hover { color: var(--ink); }
@@ -127,10 +130,13 @@
   .cloudhint .spinbtn:hover { color: var(--ink); border-color: var(--line-2); }
   .cloudhint .spinbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  .legend { display: flex; gap: 18px; align-items: center; margin-top: 12px; padding: 0 6px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+  .legend { display: flex; gap: 16px; align-items: center; margin-top: 12px; padding: 2px 6px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
   .legend .k { display: inline-flex; align-items: center; gap: 7px; }
   .legend .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .legend .sw { width: 11px; height: 11px; border-radius: 3px; }
   .legend .ring { width: 11px; height: 11px; border-radius: 50%; border: 1.6px solid var(--muted); box-sizing: border-box; }
+  .legend .grad { width: 130px; height: 11px; border-radius: 3px; }
+  .legend .cap { color: var(--faint); font-family: var(--mono); font-size: 11px; }
 
   /* Tooltip */
   .tip { position: fixed; pointer-events: none; z-index: 30; opacity: 0; transform: translateY(3px); transition: opacity .1s, transform .1s;
@@ -227,7 +233,7 @@
     <h2 class="sec">How the model works</h2>
     <p class="lead">It's a two-tower network. The photo and the patient metadata are read by separate encoders, their outputs are concatenated into one vector, and a small classifier turns that into a single probability of malignancy.</p>
     <figure class="netfig">
-      <svg class="net" id="netsvg" viewBox="0 0 1000 340" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Network diagram: an image encoder and a metadata encoder feed a fusion layer, then a classifier outputs probability of malignant."></svg>
+      <svg class="net" id="netsvg" viewBox="0 0 1000 372" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Network diagram: an image encoder and a metadata encoder feed a fusion layer, then a classifier outputs probability of malignant."></svg>
     </figure>
     <div class="legend2">
       <span><i style="background:var(--benign)"></i>image pathway</span>
@@ -252,13 +258,25 @@
   <main class="grid">
     <div>
       <div class="toolbar">
-        <div class="grp">Color
-          <div class="seg" id="colorseg" role="group" aria-label="Color points by">
-            <button data-mode="true" class="on">True label</button>
-            <button data-mode="pred">Prediction</button>
-            <button data-mode="correct">Hit / miss</button>
-          </div>
-        </div>
+        <label class="grp">Color by
+          <select class="sel" id="colorsel" aria-label="Color points by">
+            <option value="true">True label</option>
+            <option value="pred">Prediction</option>
+            <option value="correct">Hit / miss</option>
+            <option value="sex">Sex</option>
+            <option value="age">Age</option>
+            <option value="loc">Location</option>
+          </select>
+        </label>
+        <label class="grp">X
+          <select class="sel" id="xsel" aria-label="X axis field"></select>
+        </label>
+        <label class="grp">Y
+          <select class="sel" id="ysel" aria-label="Y axis field"></select>
+        </label>
+        <label class="grp hidden" id="zgrp">Depth
+          <select class="sel" id="zsel" aria-label="Depth axis field"></select>
+        </label>
         <div class="grp">Show
           <div class="seg" id="filterseg" role="group" aria-label="Filter points">
             <button data-f="all" class="on">All</button>
@@ -321,8 +339,21 @@
   var colorMode = "true", filterMode = "all", viewMode = "scatter", selected = null, DATA = null, META = {};
   var sortKey = "id", sortDir = 1;
 
+  // Configurable axes
+  var axisX = "x", axisY = "y", axisZ = "prob";
+  var AXES = [];                        // [{ key, label }] populated in boot
+  var axisRange = {};                   // key -> { min, max }
+  var LABELS = { x: "PCA 1", y: "PCA 2", z: "PCA 3", prob: "P(malignant)", age: "age" };
+
+  // Color-by machinery
+  var SEXCOL = { male: "#9b8cff", female: "#e8a13b", unknown: "#6d7d92" };
+  var LOCPAL = ["#3ba3e8", "#e8a13b", "#46c26a", "#c98bff", "#f06595", "#22b8cf", "#fab005"];
+  var locColor = {};                    // location -> color (top locations); rest -> gray
+  var AGE_LO = "#2a4a63", AGE_HI = "#7cc4ff";
+  var sexesPresent = [], locsColored = [];
+
   // 3D cloud state
-  var yaw = 0.6, pitch = -0.4, spinning = true, dragging = false, spinRAF = null;
+  var yaw = 0.6, pitch = -0.42, spinning = true, dragging = false, spinRAF = null;
   var cloud = [];                       // [{ d, c, X, Y, Z }] for the visible points
   var zField = "prob", zLabel = "P(malignant)";
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -330,6 +361,24 @@
   function el(n, a) { var e = document.createElementNS(SVGNS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
   function px(v) { return PAD + v * (W - 2 * PAD); }
   function py(v) { return PAD + (1 - v) * (H - 2 * PAD); }
+
+  // Normalized [0,1] value of any axis field for a case (null -> center).
+  function axisVal(d, key) {
+    var v = d[key];
+    if (v == null) return 0.5;
+    var r = axisRange[key];
+    if (!r || r.max === r.min) return 0.5;
+    return (v - r.min) / (r.max - r.min);
+  }
+  function axisLabel(key) { return (LABELS[key] || key) + (key === "x" || key === "y" || key === "z" ? "  (PCA)" : ""); }
+
+  function lerpHex(a, b, t) {
+    function h(x, i) { return parseInt(x.slice(1 + i * 2, 3 + i * 2), 16); }
+    var r = Math.round(h(a, 0) + (h(b, 0) - h(a, 0)) * t);
+    var g = Math.round(h(a, 1) + (h(b, 1) - h(a, 1)) * t);
+    var bl = Math.round(h(a, 2) + (h(b, 2) - h(a, 2)) * t);
+    return "rgb(" + r + "," + g + "," + bl + ")";
+  }
 
   // ---- Network architecture diagram ------------------------------------
   function drawNet() {
@@ -412,8 +461,13 @@
 
   function colorOf(d) {
     if (colorMode === "correct") return d.correct ? C.good : C.bad;
+    if (colorMode === "sex") return SEXCOL[d.sex] || SEXCOL.unknown;
+    if (colorMode === "loc") return locColor[d.loc] || "#5a6b7d";
+    if (colorMode === "age") return lerpHex(AGE_LO, AGE_HI, axisVal(d, "age"));
     return (colorMode === "pred" ? d.pred : d.true) === "malignant" ? C.malignant : C.benign;
   }
+  // Whether a case is misclassified — used to ring points regardless of color mode.
+  function isMiss(d) { return !d.correct; }
   function visible(d) {
     if (filterMode === "all") return true;
     if (filterMode === "wrong") return !d.correct;
@@ -429,8 +483,8 @@
     }
     svg.appendChild(g);
     svg.appendChild(el("rect", { class: "frame", x: PAD, y: PAD, width: W - 2 * PAD, height: H - 2 * PAD, rx: 6 }));
-    var xl = el("text", { class: "axlbl", x: W / 2, y: H - 20, "text-anchor": "middle" }); xl.textContent = "feature dim 1  (PCA)"; svg.appendChild(xl);
-    var yl = el("text", { class: "axlbl", x: 20, y: H / 2, "text-anchor": "middle", transform: "rotate(-90 20 " + H / 2 + ")" }); yl.textContent = "feature dim 2  (PCA)"; svg.appendChild(yl);
+    var xl = el("text", { class: "axlbl", x: W / 2, y: H - 20, "text-anchor": "middle" }); xl.textContent = axisLabel(axisX); svg.appendChild(xl);
+    var yl = el("text", { class: "axlbl", x: 20, y: H / 2, "text-anchor": "middle", transform: "rotate(-90 20 " + H / 2 + ")" }); yl.textContent = axisLabel(axisY); svg.appendChild(yl);
   }
 
   function currentRows() {
@@ -456,35 +510,37 @@
   var CX = W / 2, CY = H / 2, SCALE = 470;
   var axLines = [];   // the three projected axis segments
 
+  var FOCAL = 2.6;   // weak perspective: nearer points spread out and grow, giving volume
   function project(X, Y, Z) {
     var cy = Math.cos(yaw), sy = Math.sin(yaw);
     var x1 = X * cy + Z * sy, z1 = -X * sy + Z * cy, y1 = Y;
     var cp = Math.cos(pitch), sp = Math.sin(pitch);
     var y2 = y1 * cp - z1 * sp, z2 = y1 * sp + z1 * cp;
-    return { sx: CX + x1 * SCALE, sy: CY - y2 * SCALE, depth: z2 };
+    var persp = FOCAL / (FOCAL - z2);            // z2>0 = nearer -> larger
+    return { sx: CX + x1 * SCALE * persp, sy: CY - y2 * SCALE * persp, depth: z2, persp: persp };
   }
 
   function buildCloud() {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     svg.classList.add("is3d");
     // three axis segments, drawn under the points, re-projected each frame
+    function shortLab(k) { return k === "prob" ? "P(mal)" : (LABELS[k] || k); }
     axLines = [
-      { a: [-0.5, 0, 0], b: [0.5, 0, 0], lab: "dim 1", line: el("line", { class: "axis3d" }), txt: axText() },
-      { a: [0, -0.5, 0], b: [0, 0.5, 0], lab: "dim 2", line: el("line", { class: "axis3d" }), txt: axText() },
-      { a: [0, 0, -0.5], b: [0, 0, 0.5], lab: zLabel.split(" ")[0] === "P(malignant)" ? "P(mal)" : "dim 3", line: el("line", { class: "axis3d dim" }), txt: axText() }
+      { a: [-0.5, 0, 0], b: [0.5, 0, 0], lab: shortLab(axisX), line: el("line", { class: "axis3d" }), txt: axText() },
+      { a: [0, -0.5, 0], b: [0, 0.5, 0], lab: shortLab(axisY), line: el("line", { class: "axis3d" }), txt: axText() },
+      { a: [0, 0, -0.5], b: [0, 0, 0.5], lab: shortLab(axisZ), line: el("line", { class: "axis3d dim" }), txt: axText() }
     ];
     axLines.forEach(function (ax) { svg.appendChild(ax.line); svg.appendChild(ax.txt); });
 
     cloud = [];
     DATA.forEach(function (d) {
       if (!visible(d)) return;
-      var zc = (zField === "z" && typeof d.z === "number") ? d.z : d.prob;
       var c = el("circle", {
         class: "pt", r: 5, fill: colorOf(d), "fill-opacity": .9,
-        stroke: selected === d ? "#fff" : (d.correct ? "none" : "rgba(255,255,255,.55)"),
-        "stroke-width": selected === d ? 2.5 : (d.correct ? 0 : 1.2)
+        stroke: selected === d ? "#fff" : (isMiss(d) ? "rgba(255,255,255,.55)" : "none"),
+        "stroke-width": selected === d ? 2.5 : (isMiss(d) ? 1.2 : 0)
       });
-      var pt = { d: d, c: c, X: d.x - 0.5, Y: d.y - 0.5, Z: zc - 0.5 };
+      var pt = { d: d, c: c, X: axisVal(d, axisX) - 0.5, Y: axisVal(d, axisY) - 0.5, Z: axisVal(d, axisZ) - 0.5 };
       c.addEventListener("mouseenter", function (e) { if (!dragging) hover(d, e); });
       c.addEventListener("mousemove", function (e) { if (!dragging) moveTip(e); });
       c.addEventListener("mouseleave", function () { tip.style.opacity = 0; });
@@ -509,10 +565,10 @@
       p.depth = pr.depth;
       var t = (pr.depth + 0.75) / 1.5;             // ~0..1 near->far normalization
       if (t < 0) t = 0; if (t > 1) t = 1;
-      var r = selected === p.d ? 8 : (3.2 + 4.2 * t);
+      var r = selected === p.d ? 9 : (2.6 + 5.4 * t) * pr.persp;   // depth + perspective size
       p.c.setAttribute("cx", pr.sx); p.c.setAttribute("cy", pr.sy);
-      p.c.setAttribute("r", r);
-      p.c.setAttribute("fill-opacity", (0.35 + 0.6 * t).toFixed(3));
+      p.c.setAttribute("r", r.toFixed(2));
+      p.c.setAttribute("fill-opacity", (0.28 + 0.66 * t).toFixed(3));
     }
     // painter's order: far first. Re-append preserves listeners.
     cloud.slice().sort(function (a, b) { return a.depth - b.depth; })
@@ -549,10 +605,10 @@
       var vis = visible(d);
       var c = el("circle", {
         class: "pt" + (vis ? "" : " dim") + (selected === d ? " sel" : ""),
-        cx: px(d.x), cy: py(d.y), r: selected === d ? 8.5 : 5.5,
+        cx: px(axisVal(d, axisX)), cy: py(axisVal(d, axisY)), r: selected === d ? 8.5 : 5.5,
         fill: colorOf(d), "fill-opacity": .92,
-        stroke: selected === d ? "#fff" : (d.correct ? "none" : "rgba(255,255,255,.6)"),
-        "stroke-width": selected === d ? 2.5 : (d.correct ? 0 : 1.4)
+        stroke: selected === d ? "#fff" : (isMiss(d) ? "rgba(255,255,255,.6)" : "none"),
+        "stroke-width": selected === d ? 2.5 : (isMiss(d) ? 1.4 : 0)
       });
       if (vis) {
         c.setAttribute("tabindex", "0");
@@ -701,16 +757,25 @@
 
   function legend() {
     var lg = document.getElementById("legend");
+    var missNote = '<span class="k"><i class="ring"></i>ring = misclassified</span>';
+    function dot(col, txt) { return '<span class="k"><i class="dot" style="background:' + col + '"></i>' + txt + '</span>'; }
+    function sw(col, txt) { return '<span class="k"><i class="sw" style="background:' + col + '"></i>' + txt + '</span>'; }
     if (colorMode === "correct") {
+      lg.innerHTML = dot(C.good, "hit") + dot(C.bad, "miss");
+    } else if (colorMode === "sex") {
+      lg.innerHTML = sexesPresent.map(function (s) { return sw(SEXCOL[s] || SEXCOL.unknown, s); }).join("") + missNote;
+    } else if (colorMode === "loc") {
+      lg.innerHTML = locsColored.map(function (l) { return sw(locColor[l], l); }).join("") +
+        sw("#5a6b7d", "other") + missNote;
+    } else if (colorMode === "age") {
+      var r = axisRange.age || { min: 0, max: 100 };
       lg.innerHTML =
-        '<span class="k"><i class="dot" style="background:' + C.good + '"></i>hit</span>' +
-        '<span class="k"><i class="dot" style="background:' + C.bad + '"></i>miss</span>';
+        '<span class="k"><span class="cap">' + Math.round(r.min) + '</span>' +
+        '<span class="grad" style="background:linear-gradient(90deg,' + AGE_LO + ',' + AGE_HI + ')"></span>' +
+        '<span class="cap">' + Math.round(r.max) + '</span> age</span>' + missNote;
     } else {
       var w = colorMode === "pred" ? "predicted" : "true";
-      lg.innerHTML =
-        '<span class="k"><i class="dot" style="background:' + C.benign + '"></i>' + w + ' benign</span>' +
-        '<span class="k"><i class="dot" style="background:' + C.malignant + '"></i>' + w + ' malignant</span>' +
-        '<span class="k"><i class="ring"></i>ring = misclassified</span>';
+      lg.innerHTML = dot(C.benign, w + " benign") + dot(C.malignant, w + " malignant") + missNote;
     }
   }
 
@@ -741,20 +806,59 @@
     document.getElementById("legend").classList.toggle("hidden", isTable);
     document.getElementById("tablecard").classList.toggle("hidden", !isTable);
     document.getElementById("cloudhint").classList.toggle("hidden", v !== "cloud");
+    document.getElementById("zgrp").classList.toggle("hidden", v !== "cloud");
     if (v !== "cloud") { svg.classList.remove("is3d", "grabbing"); }
     if (v === "cloud") startSpin();
+  }
+
+  function fillAxisSelect(id, val) {
+    var s = document.getElementById(id);
+    s.innerHTML = AXES.map(function (a) {
+      return '<option value="' + a.key + '"' + (a.key === val ? " selected" : "") + '>' + a.label + '</option>';
+    }).join("");
+  }
+
+  function buildAxisMeta(hasZ) {
+    AXES = [{ key: "x", label: "PCA 1" }, { key: "y", label: "PCA 2" }];
+    if (hasZ) AXES.push({ key: "z", label: "PCA 3" });
+    AXES.push({ key: "prob", label: "P(malignant)" }, { key: "age", label: "age" });
+    ["x", "y", "z", "prob", "age"].forEach(function (k) {
+      var vals = DATA.map(function (d) { return d[k]; }).filter(function (v) { return v != null; });
+      if (vals.length) axisRange[k] = { min: Math.min.apply(null, vals), max: Math.max.apply(null, vals) };
+    });
+    axisX = "x"; axisY = "y"; axisZ = hasZ ? "z" : "prob";
+  }
+
+  function buildCategoryColors() {
+    var sset = {}, counts = {};
+    DATA.forEach(function (d) {
+      sset[d.sex || "unknown"] = 1;
+      counts[d.loc] = (counts[d.loc] || 0) + 1;
+    });
+    sexesPresent = Object.keys(sset).sort();
+    var locsByFreq = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+    locsColored = locsByFreq.slice(0, LOCPAL.length);
+    locColor = {};
+    locsColored.forEach(function (l, i) { locColor[l] = LOCPAL[i]; });
   }
 
   function boot(data, meta) {
     DATA = data; META = meta || {};
     var hasZ = DATA.some(function (d) { return typeof d.z === "number"; });
     zField = hasZ ? "z" : "prob";
-    zLabel = hasZ ? "feature dim 3 (PCA)" : "P(malignant)";
     document.getElementById("cloudaxis").textContent =
       "drag to rotate · depth = " + (hasZ ? "feature dim 3 (PCA)" : "P(malignant), until the notebook is rerun with 3-component PCA");
+    buildAxisMeta(hasZ);
+    buildCategoryColors();
+    fillAxisSelect("xsel", axisX);
+    fillAxisSelect("ysel", axisY);
+    fillAxisSelect("zsel", axisZ);
     drawNet();
     headstats();
-    wire("colorseg", "data-mode", function (v) { colorMode = v; });
+    document.getElementById("colorsel").addEventListener("change", function (e) { colorMode = e.target.value; refresh(); });
+    document.getElementById("xsel").addEventListener("change", function (e) { axisX = e.target.value; refresh(); });
+    document.getElementById("ysel").addEventListener("change", function (e) { axisY = e.target.value; refresh(); });
+    document.getElementById("zsel").addEventListener("change", function (e) { axisZ = e.target.value; refresh(); });
     wire("filterseg", "data-f", function (v) { filterMode = v; });
     wire("viewseg", "data-v", setView);
     var sb = document.getElementById("spinbtn");
