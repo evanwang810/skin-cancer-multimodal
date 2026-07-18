@@ -6,13 +6,13 @@
 <title>Multimodal Skin Lesion Model — Insights</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0e14; --bg-2: #0d121a; --panel: #121924; --panel-2: #18202c;
     --line: #232e3c; --line-2: #2c3a4a; --ink: #eaf0f7; --muted: #8b98a8; --faint: #6d7d92;
     --benign: #3ba3e8; --malignant: #fb5a6a; --accent: #9b8cff; --good: #46c26a; --bad: #fb5a6a;
-    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --serif: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --radius: 16px; --shadow: 0 12px 34px rgba(0,0,0,.42);
@@ -20,8 +20,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    background: radial-gradient(1100px 620px at 78% -8%, rgba(155,140,255,.10), transparent 60%),
-                radial-gradient(900px 520px at 8% 0%, rgba(59,163,232,.08), transparent 55%), var(--bg);
+    background: var(--bg);
     color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
   .num { font-family: var(--mono); font-feature-settings: "tnum" 1; }
@@ -39,12 +38,12 @@
   header h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 10px; }
   header p.sub { color: var(--muted); margin: 0; max-width: 700px; font-size: 15.5px; }
   .headstats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-  .stat { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; min-width: 108px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; min-width: 108px; }
   .stat .v { font-family: var(--mono); font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
   .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
 
-  .card { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 26px; margin-bottom: 22px; }
-  h2.sec { font-family: var(--serif); font-weight: 500; font-size: 21px; margin: 0 0 6px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 22px; }
+  h2.sec { font-family: var(--sans); font-weight: 600; font-size: 18px; margin: 0 0 6px; }
   .finding { color: var(--muted); font-size: 14px; margin: 0 0 18px; max-width: 780px; line-height: 1.6; }
   .finding b { color: var(--ink); font-weight: 600; }
   .caveat { display: flex; gap: 8px; align-items: flex-start; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; font-size: 12.5px; color: var(--faint); margin-top: 14px; max-width: 780px; }

@@ -6,7 +6,7 @@
 <title>Multimodal Skin Lesion Model — Test Case Explorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0e14;
@@ -23,19 +23,18 @@
     --accent: #9b8cff;      /* periwinkle, interactive chrome */
     --good: #46c26a;
     --bad: #fb5a6a;
-    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    /* Display type is the same sans as body now — no serif. Kept the var name so
+       every old rule that referenced --serif just resolves to the sans stack. */
+    --serif: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    --radius: 16px;
-    --shadow: 0 12px 34px rgba(0,0,0,.42);
+    --radius: 12px;
+    --shadow: 0 10px 26px rgba(0,0,0,.38);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    background:
-      radial-gradient(1100px 620px at 78% -8%, rgba(155,140,255,.10), transparent 60%),
-      radial-gradient(900px 520px at 8% 0%, rgba(59,163,232,.08), transparent 55%),
-      var(--bg);
+    background: var(--bg);
     color: var(--ink);
     font-family: var(--sans);
     font-size: 15px;
@@ -48,30 +47,47 @@
   /* Header */
   header { margin-bottom: 26px; }
   .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
-  header h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 4vw, 42px); line-height: 1.08; letter-spacing: -0.01em; margin: 0 0 10px; }
-  header h1 em { font-style: italic; color: var(--benign); }
+  header h1 { font-family: var(--sans); font-weight: 600; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 10px; }
+  header h1 em { font-style: normal; color: var(--benign); }
   header p.sub { color: var(--muted); margin: 0; max-width: 640px; font-size: 15.5px; }
 
   .headstats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-  .stat { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; min-width: 118px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; min-width: 118px; }
   .stat .v { font-family: var(--mono); font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
   .stat .l { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
   .stat.hide { display: none; }
 
-  h2.sec { font-family: var(--serif); font-weight: 500; font-size: 21px; margin: 0 0 4px; }
-  .card { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line); border-radius: var(--radius); }
+  h2.sec { font-family: var(--sans); font-weight: 600; font-size: 18px; margin: 0 0 4px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
 
   /* How it works */
-  .how { padding: 24px 26px; margin-bottom: 22px; }
-  .how .lead { color: var(--muted); font-size: 14px; margin: 4px 0 20px; max-width: 760px; }
-  .pipe { display: flex; flex-wrap: wrap; gap: 12px; }
-  .step { flex: 1 1 176px; position: relative; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 15px 16px; }
-  .step .n { font-family: var(--serif); font-style: italic; font-size: 26px; color: var(--faint); line-height: 1; }
-  .step .t { font-weight: 600; margin: 8px 0 5px; font-size: 14.5px; }
-  .step .d { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
-  .step.op { flex: 0 0 22px; align-items: center; justify-content: center; display: flex; background: none; border: none; padding: 0; color: var(--faint); font-family: var(--mono); font-size: 18px; }
-  .how .note { color: var(--muted); font-size: 13.5px; margin: 18px 0 0; max-width: 880px; }
+  .how { padding: 22px 24px; margin-bottom: 22px; }
+  .how .lead { color: var(--muted); font-size: 14px; margin: 4px 0 18px; max-width: 760px; }
+  .netfig { margin: 0; }
+  svg.net { width: 100%; height: auto; display: block; }
+  svg.net text { font-family: var(--mono); fill: var(--muted); }
+  svg.net .node { stroke-width: 1; }
+  svg.net .edge { stroke: var(--line-2); fill: none; }
+  svg.net .colcap { fill: var(--ink); font-size: 12.5px; font-weight: 600; }
+  svg.net .colsub { fill: var(--faint); font-size: 10.5px; }
+  svg.net .flowlab { fill: var(--accent); font-size: 11px; letter-spacing: .04em; }
+  .how .legend2 { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+  .how .legend2 span { display: inline-flex; align-items: center; gap: 7px; }
+  .how .legend2 i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .how .note { color: var(--muted); font-size: 13.5px; margin: 16px 0 0; max-width: 900px; line-height: 1.6; }
+  .how .note + .note { margin-top: 10px; }
   .how .note b { color: var(--ink); font-weight: 600; }
+  details.deep { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+  details.deep summary { cursor: pointer; font-size: 13px; color: var(--accent); font-family: var(--mono); list-style: none; }
+  details.deep summary::-webkit-details-marker { display: none; }
+  details.deep summary::before { content: "+ "; }
+  details.deep[open] summary::before { content: "\2212 "; }
+  details.deep .body { margin-top: 12px; }
+  details.deep .layer { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  details.deep .layer:first-child { border-top: none; }
+  details.deep .layer .nm { font-family: var(--mono); color: var(--ink); flex: 0 0 168px; }
+  details.deep .layer .ds { color: var(--muted); }
+  details.deep .layer .sh { font-family: var(--mono); color: var(--faint); margin-left: auto; flex: none; white-space: nowrap; }
 
   /* Main grid */
   .grid { display: grid; grid-template-columns: minmax(0,1fr) 348px; gap: 20px; align-items: start; }
@@ -100,6 +116,17 @@
   circle.pt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { circle.pt, .seg button { transition: none; } }
 
+  /* 3D cloud mode */
+  svg.scatter.is3d { cursor: grab; }
+  svg.scatter.is3d.grabbing { cursor: grabbing; }
+  svg.scatter .axis3d { stroke: var(--line-2); stroke-width: 1; }
+  svg.scatter .axis3d.dim { stroke: var(--line); }
+  svg.scatter .axlbl3d { fill: var(--faint); font-family: var(--mono); font-size: 11px; }
+  .cloudhint { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 12px 2px; font-size: 12px; color: var(--faint); font-family: var(--mono); flex-wrap: wrap; }
+  .cloudhint .spinbtn { background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); font-family: var(--mono); font-size: 11.5px; padding: 4px 10px; border-radius: 7px; cursor: pointer; }
+  .cloudhint .spinbtn:hover { color: var(--ink); border-color: var(--line-2); }
+  .cloudhint .spinbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
   .legend { display: flex; gap: 18px; align-items: center; margin-top: 12px; padding: 0 6px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
   .legend .k { display: inline-flex; align-items: center; gap: 7px; }
   .legend .dot { width: 11px; height: 11px; border-radius: 50%; }
@@ -115,8 +142,8 @@
   /* Detail panel */
   .detail { padding: 20px 20px 22px; position: sticky; top: 20px; }
   .detail .ph { color: var(--faint); font-size: 13.5px; text-align: center; padding: 54px 14px; line-height: 1.6; }
-  .detail .ph .mk { font-family: var(--serif); font-style: italic; font-size: 30px; color: var(--line-2); display: block; margin-bottom: 8px; }
-  .detail h3 { font-family: var(--serif); font-weight: 500; font-size: 19px; margin: 0 0 2px; }
+  .detail .ph .mk { font-family: var(--mono); font-style: normal; font-size: 26px; color: var(--line-2); display: block; margin-bottom: 8px; }
+  .detail h3 { font-family: var(--sans); font-weight: 600; font-size: 17px; margin: 0 0 2px; }
   .detail .cid { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-bottom: 14px; }
   .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .imgs figure { margin: 0; }
@@ -198,17 +225,28 @@
 
   <section class="card how">
     <h2 class="sec">How the model works</h2>
-    <p class="lead">Two encoders read the case in parallel, their features are fused, and one layer turns that into a probability.</p>
-    <div class="pipe">
-      <div class="step"><div class="n">1</div><div class="t">Image encoder</div><div class="d">A ResNet50 pretrained on ImageNet, fine-tuned on dermoscopy, maps the 224&times;224 photo to a feature vector.</div></div>
-      <div class="step op">+</div>
-      <div class="step"><div class="n">2</div><div class="t">Metadata encoder</div><div class="d">A small network reads age, sex, and lesion location into its own feature vector.</div></div>
-      <div class="step op">&rarr;</div>
-      <div class="step"><div class="n">3</div><div class="t">Fuse</div><div class="d">The two vectors are concatenated into one combined representation of the lesion.</div></div>
-      <div class="step op">&rarr;</div>
-      <div class="step"><div class="n">4</div><div class="t">Classify</div><div class="d">A final layer outputs P(malignant); a threshold tuned on validation turns it into a label.</div></div>
+    <p class="lead">It's a two-tower network. The photo and the patient metadata are read by separate encoders, their outputs are concatenated into one vector, and a small classifier turns that into a single probability of malignancy.</p>
+    <figure class="netfig">
+      <svg class="net" id="netsvg" viewBox="0 0 1000 340" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Network diagram: an image encoder and a metadata encoder feed a fusion layer, then a classifier outputs probability of malignant."></svg>
+    </figure>
+    <div class="legend2">
+      <span><i style="background:var(--benign)"></i>image pathway</span>
+      <span><i style="background:var(--accent)"></i>metadata pathway</span>
+      <span><i style="background:var(--malignant)"></i>malignant output</span>
+      <span><i style="background:var(--good)"></i>benign output</span>
     </div>
-    <p class="note">The scatter is that fused vector reduced to two dimensions with <b>PCA</b>, so lesions the model reads as similar sit close together and the benign and malignant groups tend to pull apart. The axes carry no clinical unit on their own, they are just the two directions of largest variation in what the model learned. A clean split is a good sign; cases mixed in the middle are where the model is least certain.</p>
+    <p class="note">Each node above is a stand-in for a whole layer of real units, not a single neuron &mdash; the widths are illustrative. What matters is the <b>shape</b>: two independent pathways that never see each other's raw input, joined only at the fusion step, so the classifier decides using both the pixels and the context at once.</p>
+    <p class="note">The scatter below plots that fused vector, reduced to two dimensions with <b>PCA</b> (three, in the 3D view), so lesions the model reads as similar sit close together and the benign and malignant groups pull apart. The axes carry no clinical unit &mdash; they're just the directions of largest variation in what the model learned. A clean split is a good sign; the cases in the mixed middle are where it's least certain.</p>
+    <details class="deep">
+      <summary>Layer-by-layer detail</summary>
+      <div class="body">
+        <div class="layer"><span class="nm">Image encoder</span><span class="ds">ResNet50 pretrained on ImageNet, fine-tuned; final fc swapped to emit the feature vector.</span><span class="sh">3&times;224&times;224 &rarr; 256</span></div>
+        <div class="layer"><span class="nm">Metadata encoder</span><span class="ds">MLP over age (scaled) plus one-hot sex and lesion location. Two hidden layers, ReLU.</span><span class="sh">META &rarr; 32 &rarr; 32</span></div>
+        <div class="layer"><span class="nm">Fusion</span><span class="ds">The two vectors are concatenated &mdash; no cross-attention, just a joined representation.</span><span class="sh">256 + 32 = 288</span></div>
+        <div class="layer"><span class="nm">Classifier</span><span class="ds">One hidden layer with dropout, then a 2-logit head; softmax gives P(malignant).</span><span class="sh">288 &rarr; 64 &rarr; 2</span></div>
+        <div class="layer"><span class="nm">Decision</span><span class="ds">Threshold tuned on the validation set (not 0.5) turns the probability into a benign/malignant label.</span><span class="sh">P &ge; thr</span></div>
+      </div>
+    </details>
   </section>
 
   <main class="grid">
@@ -231,7 +269,8 @@
         </div>
         <div class="grp">View
           <div class="seg" id="viewseg" role="group" aria-label="Switch view">
-            <button data-v="scatter" class="on">Scatter</button>
+            <button data-v="scatter" class="on">2D</button>
+            <button data-v="cloud">3D</button>
             <button data-v="table">Table</button>
           </div>
         </div>
@@ -244,6 +283,10 @@
       <div class="substats" id="substats"></div>
 
       <div class="card plotcard" id="plotcard">
+        <div class="cloudhint hidden" id="cloudhint">
+          <span id="cloudaxis">drag to rotate &middot; depth = feature dim 3</span>
+          <button class="spinbtn" id="spinbtn" type="button" aria-pressed="true">pause spin</button>
+        </div>
         <svg class="scatter" id="svg" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Feature-space scatter of held-out test lesions, one point per case"></svg>
       </div>
       <div class="legend" id="legend"></div>
@@ -278,9 +321,94 @@
   var colorMode = "true", filterMode = "all", viewMode = "scatter", selected = null, DATA = null, META = {};
   var sortKey = "id", sortDir = 1;
 
+  // 3D cloud state
+  var yaw = 0.6, pitch = -0.4, spinning = true, dragging = false, spinRAF = null;
+  var cloud = [];                       // [{ d, c, X, Y, Z }] for the visible points
+  var zField = "prob", zLabel = "P(malignant)";
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   function el(n, a) { var e = document.createElementNS(SVGNS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
   function px(v) { return PAD + v * (W - 2 * PAD); }
   function py(v) { return PAD + (1 - v) * (H - 2 * PAD); }
+
+  // ---- Network architecture diagram ------------------------------------
+  function drawNet() {
+    var net = document.getElementById("netsvg");
+    if (!net) return;
+    var NS = SVGNS;
+    function n(name, a) { var e = document.createElementNS(NS, name); for (var k in a) e.setAttribute(k, a[k]); return e; }
+    function ys(count, yc, sp) { var out = [], start = yc - (count - 1) * sp / 2; for (var i = 0; i < count; i++) out.push(start + i * sp); return out; }
+    var BEN = "#3ba3e8", ACC = "#9b8cff", MAL = "#fb5a6a", GOOD = "#46c26a";
+
+    var col = {
+      imgIn:  { x: 95,  y: ys(1, 120, 0),  col: BEN,  box: true },
+      imgEnc: { x: 250, y: ys(5, 120, 30), col: BEN },
+      metaIn: { x: 95,  y: ys(3, 250, 30), col: ACC },
+      metaEnc:{ x: 250, y: ys(4, 250, 30), col: ACC },
+      fuse:   { x: 500, y: ys(6, 175, 30), col: null },
+      cls:    { x: 715, y: ys(4, 175, 32), col: ACC },
+      out:    { x: 905, y: ys(2, 175, 46), col: null }
+    };
+
+    // edges (draw first, under nodes)
+    function edges(a, b, sample) {
+      a.y.forEach(function (ay, i) {
+        b.y.forEach(function (by, j) {
+          if (sample && (i + j) % 2 === 1) return;
+          net.appendChild(n("path", { class: "edge", "stroke-opacity": .22,
+            d: "M" + (a.x + 10) + " " + ay + " C " + (a.x + (b.x - a.x) * .5) + " " + ay + ", " +
+               (a.x + (b.x - a.x) * .5) + " " + by + ", " + (b.x - 10) + " " + by }));
+        });
+      });
+    }
+    edges(col.imgIn, col.imgEnc);
+    edges(col.imgEnc, col.fuse, true);
+    edges(col.metaIn, col.metaEnc);
+    edges(col.metaEnc, col.fuse, true);
+    edges(col.fuse, col.cls, true);
+    edges(col.cls, col.out);
+
+    // nodes
+    function drawCol(c, colorFor) {
+      c.y.forEach(function (yy, i) {
+        if (c.box) {
+          net.appendChild(n("rect", { class: "node", x: c.x - 16, y: yy - 16, width: 32, height: 32, rx: 6,
+            fill: "rgba(59,163,232,.14)", stroke: c.col }));
+          return;
+        }
+        var fill = colorFor ? colorFor(i) : c.col;
+        net.appendChild(n("circle", { class: "node", cx: c.x, cy: yy, r: 9,
+          fill: fill.f, stroke: fill.s }));
+      });
+    }
+    var solid = function (hex) { return { f: hexA(hex, .18), s: hex }; };
+    function hexA(hex, a) {
+      var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+      return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+    }
+    drawCol(col.imgIn);
+    drawCol(col.imgEnc, function () { return solid(BEN); });
+    drawCol(col.metaIn, function () { return solid(ACC); });
+    drawCol(col.metaEnc, function () { return solid(ACC); });
+    drawCol(col.fuse, function (i) { return solid(i % 2 === 0 ? BEN : ACC); });   // fused = both pathways
+    drawCol(col.cls, function () { return solid(ACC); });
+    drawCol(col.out, function (i) { return solid(i === 0 ? MAL : GOOD); });
+
+    // captions
+    function cap(x, y, t, s) {
+      var a = n("text", { class: "colcap", x: x, y: y, "text-anchor": "middle" }); a.textContent = t; net.appendChild(a);
+      if (s) { var b = n("text", { class: "colsub", x: x, y: y + 15, "text-anchor": "middle" }); b.textContent = s; net.appendChild(b); }
+    }
+    cap(95, 48, "Photo", "224x224x3");
+    cap(250, 48, "Image encoder", "ResNet50 -> 256");
+    cap(500, 48, "Fusion", "concat = 288");
+    cap(715, 48, "Classifier", "288 -> 64");
+    cap(905, 48, "Output", "P(malignant)");
+    cap(95, 322, "Patient data", "age . sex . location");
+    cap(250, 322, "Metadata encoder", "MLP -> 32");
+    var out0 = n("text", { class: "colsub", x: 928, y: 179, "text-anchor": "start" }); out0.textContent = "mal"; net.appendChild(out0);
+    var out1 = n("text", { class: "colsub", x: 928, y: 225, "text-anchor": "start" }); out1.textContent = "ben"; net.appendChild(out1);
+  }
 
   function colorOf(d) {
     if (colorMode === "correct") return d.correct ? C.good : C.bad;
@@ -318,9 +446,102 @@
 
   function refresh() {
     substats();
-    if (viewMode === "table") { renderTable(); }
-    else { renderScatter(); legend(); }
+    if (viewMode === "table") { renderTable(); return; }
+    legend();
+    if (viewMode === "cloud") { buildCloud(); }
+    else { renderScatter(); }
   }
+
+  // ---- 3D point cloud --------------------------------------------------
+  var CX = W / 2, CY = H / 2, SCALE = 470;
+  var axLines = [];   // the three projected axis segments
+
+  function project(X, Y, Z) {
+    var cy = Math.cos(yaw), sy = Math.sin(yaw);
+    var x1 = X * cy + Z * sy, z1 = -X * sy + Z * cy, y1 = Y;
+    var cp = Math.cos(pitch), sp = Math.sin(pitch);
+    var y2 = y1 * cp - z1 * sp, z2 = y1 * sp + z1 * cp;
+    return { sx: CX + x1 * SCALE, sy: CY - y2 * SCALE, depth: z2 };
+  }
+
+  function buildCloud() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    svg.classList.add("is3d");
+    // three axis segments, drawn under the points, re-projected each frame
+    axLines = [
+      { a: [-0.5, 0, 0], b: [0.5, 0, 0], lab: "dim 1", line: el("line", { class: "axis3d" }), txt: axText() },
+      { a: [0, -0.5, 0], b: [0, 0.5, 0], lab: "dim 2", line: el("line", { class: "axis3d" }), txt: axText() },
+      { a: [0, 0, -0.5], b: [0, 0, 0.5], lab: zLabel.split(" ")[0] === "P(malignant)" ? "P(mal)" : "dim 3", line: el("line", { class: "axis3d dim" }), txt: axText() }
+    ];
+    axLines.forEach(function (ax) { svg.appendChild(ax.line); svg.appendChild(ax.txt); });
+
+    cloud = [];
+    DATA.forEach(function (d) {
+      if (!visible(d)) return;
+      var zc = (zField === "z" && typeof d.z === "number") ? d.z : d.prob;
+      var c = el("circle", {
+        class: "pt", r: 5, fill: colorOf(d), "fill-opacity": .9,
+        stroke: selected === d ? "#fff" : (d.correct ? "none" : "rgba(255,255,255,.55)"),
+        "stroke-width": selected === d ? 2.5 : (d.correct ? 0 : 1.2)
+      });
+      var pt = { d: d, c: c, X: d.x - 0.5, Y: d.y - 0.5, Z: zc - 0.5 };
+      c.addEventListener("mouseenter", function (e) { if (!dragging) hover(d, e); });
+      c.addEventListener("mousemove", function (e) { if (!dragging) moveTip(e); });
+      c.addEventListener("mouseleave", function () { tip.style.opacity = 0; });
+      c.addEventListener("click", function () { selected = d; buildCloud(); showDetail(d); });
+      cloud.push(pt);
+      svg.appendChild(c);
+    });
+    projectCloud();
+  }
+  function axText() { return el("text", { class: "axlbl3d", "text-anchor": "middle" }); }
+
+  function projectCloud() {
+    axLines.forEach(function (ax) {
+      var pa = project(ax.a[0], ax.a[1], ax.a[2]), pb = project(ax.b[0], ax.b[1], ax.b[2]);
+      ax.line.setAttribute("x1", pa.sx); ax.line.setAttribute("y1", pa.sy);
+      ax.line.setAttribute("x2", pb.sx); ax.line.setAttribute("y2", pb.sy);
+      ax.txt.setAttribute("x", pb.sx); ax.txt.setAttribute("y", pb.sy - 8);
+      ax.txt.textContent = ax.lab;
+    });
+    for (var i = 0; i < cloud.length; i++) {
+      var p = cloud[i], pr = project(p.X, p.Y, p.Z);
+      p.depth = pr.depth;
+      var t = (pr.depth + 0.75) / 1.5;             // ~0..1 near->far normalization
+      if (t < 0) t = 0; if (t > 1) t = 1;
+      var r = selected === p.d ? 8 : (3.2 + 4.2 * t);
+      p.c.setAttribute("cx", pr.sx); p.c.setAttribute("cy", pr.sy);
+      p.c.setAttribute("r", r);
+      p.c.setAttribute("fill-opacity", (0.35 + 0.6 * t).toFixed(3));
+    }
+    // painter's order: far first. Re-append preserves listeners.
+    cloud.slice().sort(function (a, b) { return a.depth - b.depth; })
+      .forEach(function (p) { svg.appendChild(p.c); });
+  }
+
+  function spinTick() {
+    if (viewMode !== "cloud") { spinRAF = null; return; }
+    if (spinning && !dragging && !reduceMotion) { yaw += 0.004; projectCloud(); }
+    spinRAF = requestAnimationFrame(spinTick);
+  }
+  function startSpin() { if (!spinRAF) spinRAF = requestAnimationFrame(spinTick); }
+
+  // drag-to-rotate
+  var dragX = 0, dragY = 0;
+  function down(x, y) { dragging = true; dragX = x; dragY = y; tip.style.opacity = 0; svg.classList.add("grabbing"); }
+  function move(x, y) {
+    if (!dragging) return;
+    yaw += (x - dragX) * 0.01; pitch += (y - dragY) * 0.01;
+    if (pitch > 1.4) pitch = 1.4; if (pitch < -1.4) pitch = -1.4;
+    dragX = x; dragY = y; projectCloud();
+  }
+  function up() { dragging = false; svg.classList.remove("grabbing"); }
+  svg.addEventListener("mousedown", function (e) { if (viewMode === "cloud") { e.preventDefault(); down(e.clientX, e.clientY); } });
+  window.addEventListener("mousemove", function (e) { if (dragging) move(e.clientX, e.clientY); });
+  window.addEventListener("mouseup", up);
+  svg.addEventListener("touchstart", function (e) { if (viewMode === "cloud" && e.touches[0]) { down(e.touches[0].clientX, e.touches[0].clientY); } }, { passive: true });
+  svg.addEventListener("touchmove", function (e) { if (dragging && e.touches[0]) { e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); } }, { passive: false });
+  window.addEventListener("touchend", up);
 
   function renderScatter() {
     frame();
@@ -515,17 +736,34 @@
 
   function setView(v) {
     viewMode = v;
-    document.getElementById("plotcard").classList.toggle("hidden", v !== "scatter");
-    document.getElementById("legend").classList.toggle("hidden", v !== "scatter");
-    document.getElementById("tablecard").classList.toggle("hidden", v !== "table");
+    var isTable = v === "table";
+    document.getElementById("plotcard").classList.toggle("hidden", isTable);
+    document.getElementById("legend").classList.toggle("hidden", isTable);
+    document.getElementById("tablecard").classList.toggle("hidden", !isTable);
+    document.getElementById("cloudhint").classList.toggle("hidden", v !== "cloud");
+    if (v !== "cloud") { svg.classList.remove("is3d", "grabbing"); }
+    if (v === "cloud") startSpin();
   }
 
   function boot(data, meta) {
     DATA = data; META = meta || {};
+    var hasZ = DATA.some(function (d) { return typeof d.z === "number"; });
+    zField = hasZ ? "z" : "prob";
+    zLabel = hasZ ? "feature dim 3 (PCA)" : "P(malignant)";
+    document.getElementById("cloudaxis").textContent =
+      "drag to rotate · depth = " + (hasZ ? "feature dim 3 (PCA)" : "P(malignant), until the notebook is rerun with 3-component PCA");
+    drawNet();
     headstats();
     wire("colorseg", "data-mode", function (v) { colorMode = v; });
     wire("filterseg", "data-f", function (v) { filterMode = v; });
     wire("viewseg", "data-v", setView);
+    var sb = document.getElementById("spinbtn");
+    sb.addEventListener("click", function () {
+      spinning = !spinning;
+      sb.textContent = spinning ? "pause spin" : "resume spin";
+      sb.setAttribute("aria-pressed", String(spinning));
+    });
+    if (reduceMotion) { spinning = false; sb.textContent = "resume spin"; sb.setAttribute("aria-pressed", "false"); }
     refresh();
   }
 

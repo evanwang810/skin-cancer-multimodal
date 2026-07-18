@@ -16,10 +16,13 @@ Live site: **https://evanwang810.github.io/skin-cancer-multimodal/**
 - `report/` + `skin_cancer_report.zip` — the exported test-case results: images,
   Grad-CAM overlays, predictions (`data.json`/`data.js`), and the mined findings
   (`insights.json`/`insights.js`). Produced by the notebook's export cell.
-- `index.html` — the **Explorer**: browse the ~500 test lesions on a
-  feature-space scatter or a sortable/filterable table, with CSV/JSON export of
-  whatever's currently filtered. Click a case for the photo, Grad-CAM, and
-  prediction.
+- `index.html` — the **Explorer**: an annotated diagram of the two-tower
+  network, then the ~500 test lesions browsable as a 2D feature-space scatter,
+  a rotatable 3D point cloud, or a sortable/filterable table, with CSV/JSON
+  export of whatever's currently filtered. Click a case for the photo,
+  Grad-CAM, and prediction. The 3D depth axis is a real third PCA component once
+  the notebook is rerun (it exports 3-component PCA); until then it falls back
+  to P(malignant), labeled as such.
 - `insights.html` — real patterns mined from the 500 cases: how malignancy rate
   and recall shift with age, which anatomical sites the model struggles with,
   a sex-based recall gap, and how often the model is confidently wrong.
