@@ -1,25 +1,25 @@
 {
- "threshold": 0.489,
+ "threshold": 0.21,
  "overall": {
   "n": 500,
   "n_malignant": 250,
-  "accuracy": 0.806,
-  "recall": 0.8,
-  "precision": 0.8097,
-  "auc": 0.8991
+  "accuracy": 0.826,
+  "recall": 0.856,
+  "precision": 0.8075,
+  "auc": 0.9032
  },
  "by_sex": [
   {
    "sex": "female",
    "n": 218,
-   "accuracy": 0.8028,
-   "recall": 0.7158
+   "accuracy": 0.8303,
+   "recall": 0.8316
   },
   {
    "sex": "male",
    "n": 282,
-   "accuracy": 0.8085,
-   "recall": 0.8516
+   "accuracy": 0.8227,
+   "recall": 0.871
   }
  ],
  "by_location": [
@@ -28,8 +28,8 @@
    "n": 123,
    "n_malignant": 67,
    "malignant_rate": 0.545,
-   "accuracy": 0.7886,
-   "recall": 0.806,
+   "accuracy": 0.813,
+   "recall": 0.8657,
    "reliable": true
   },
   {
@@ -38,7 +38,7 @@
    "n_malignant": 41,
    "malignant_rate": 0.398,
    "accuracy": 0.8641,
-   "recall": 0.878,
+   "recall": 0.9268,
    "reliable": true
   },
   {
@@ -46,8 +46,8 @@
    "n": 55,
    "n_malignant": 35,
    "malignant_rate": 0.636,
-   "accuracy": 0.7455,
-   "recall": 0.7429,
+   "accuracy": 0.8,
+   "recall": 0.8571,
    "reliable": true
   },
   {
@@ -55,8 +55,8 @@
    "n": 53,
    "n_malignant": 12,
    "malignant_rate": 0.226,
-   "accuracy": 0.8491,
-   "recall": 0.6667,
+   "accuracy": 0.8302,
+   "recall": 0.5,
    "reliable": true
   },
   {
@@ -64,8 +64,8 @@
    "n": 52,
    "n_malignant": 38,
    "malignant_rate": 0.731,
-   "accuracy": 0.8462,
-   "recall": 0.9211,
+   "accuracy": 0.8654,
+   "recall": 0.9737,
    "reliable": true
   },
   {
@@ -73,8 +73,8 @@
    "n": 38,
    "n_malignant": 10,
    "malignant_rate": 0.263,
-   "accuracy": 0.6842,
-   "recall": 0.2,
+   "accuracy": 0.7632,
+   "recall": 0.6,
    "reliable": true
   },
   {
@@ -91,8 +91,8 @@
    "n": 18,
    "n_malignant": 7,
    "malignant_rate": 0.389,
-   "accuracy": 0.9444,
-   "recall": 0.8571,
+   "accuracy": 0.8333,
+   "recall": 0.5714,
    "reliable": false
   },
   {
@@ -101,7 +101,7 @@
    "n_malignant": 10,
    "malignant_rate": 0.833,
    "accuracy": 0.9167,
-   "recall": 0.9,
+   "recall": 1.0,
    "reliable": false
   },
   {
@@ -109,7 +109,7 @@
    "n": 10,
    "n_malignant": 5,
    "malignant_rate": 0.5,
-   "accuracy": 0.7,
+   "accuracy": 0.8,
    "recall": 0.6,
    "reliable": false
   },
@@ -118,8 +118,8 @@
    "n": 9,
    "n_malignant": 7,
    "malignant_rate": 0.778,
-   "accuracy": 0.7778,
-   "recall": 0.8571,
+   "accuracy": 1.0,
+   "recall": 1.0,
    "reliable": false
   },
   {
@@ -136,7 +136,7 @@
    "n": 1,
    "n_malignant": 0,
    "malignant_rate": 0.0,
-   "accuracy": 1.0,
+   "accuracy": 0.0,
    "recall": null,
    "reliable": false
   },
@@ -145,7 +145,7 @@
    "n": 1,
    "n_malignant": 0,
    "malignant_rate": 0.0,
-   "accuracy": 0.0,
+   "accuracy": 1.0,
    "recall": null,
    "reliable": false
   }
@@ -164,104 +164,108 @@
    "n": 73,
    "n_malignant": 18,
    "malignant_rate": 0.247,
-   "accuracy": 0.7808,
-   "recall": 0.5556
+   "accuracy": 0.8356,
+   "recall": 0.6667
   },
   {
    "bucket": "45-60",
    "n": 171,
    "n_malignant": 60,
    "malignant_rate": 0.351,
-   "accuracy": 0.8129,
-   "recall": 0.7
+   "accuracy": 0.807,
+   "recall": 0.7167
   },
   {
    "bucket": "60-75",
    "n": 136,
    "n_malignant": 95,
    "malignant_rate": 0.699,
-   "accuracy": 0.8235,
-   "recall": 0.8632
+   "accuracy": 0.8456,
+   "recall": 0.9263
   },
   {
    "bucket": "75+",
    "n": 98,
    "n_malignant": 73,
    "malignant_rate": 0.745,
-   "accuracy": 0.7959,
-   "recall": 0.8767
+   "accuracy": 0.8367,
+   "recall": 0.9452
   }
  ],
  "calibration": {
-  "mean_confidence_correct": 0.415,
-  "mean_confidence_wrong": 0.256,
-  "n_wrong": 97,
-  "confidently_wrong": 42,
-  "confidently_wrong_pct": 43.3
+  "mean_confidence_correct": 0.399,
+  "mean_confidence_wrong": 0.302,
+  "n_wrong": 87,
+  "confidently_wrong": 37,
+  "confidently_wrong_pct": 42.5
  },
  "errors": {
-  "false_negatives": 50,
-  "false_positives": 47,
-  "fn_mean_age": 55.0,
+  "false_negatives": 36,
+  "false_positives": 51,
+  "fn_mean_age": 52.4,
   "malignant_mean_age": 63.3,
   "benign_mean_age": 49.5
  },
  "examples": {
   "confident_correct_malignant": {
-   "id": 96,
-   "img": "img/96_orig.jpg",
-   "cam": "img/96_cam.jpg",
+   "id": 21,
+   "img": "img/21_orig.jpg",
+   "cam": "img/21_cam.jpg",
    "prob": 1.0,
    "pred": "malignant",
    "true": "malignant",
    "correct": true,
-   "age": 65.0,
+   "age": 80.0,
    "sex": "male",
-   "loc": "face",
-   "x": 0.0043,
-   "y": 0.7235
+   "loc": "back",
+   "x": 0.224,
+   "y": 0.6502,
+   "z": 0.1753
   },
   "confident_correct_benign": {
-   "id": 3,
-   "img": "img/3_orig.jpg",
-   "cam": "img/3_cam.jpg",
-   "prob": 0.0,
+   "id": 31,
+   "img": "img/31_orig.jpg",
+   "cam": "img/31_cam.jpg",
+   "prob": 0.016,
    "pred": "benign",
    "true": "benign",
    "correct": true,
-   "age": 60.0,
+   "age": 35.0,
    "sex": "male",
-   "loc": "back",
-   "x": 0.6246,
-   "y": 0.2096
+   "loc": "trunk",
+   "x": 0.9656,
+   "y": 0.5935,
+   "z": 0.4298
   },
   "confidently_missed_malignant": {
-   "id": 330,
-   "img": "img/330_orig.jpg",
-   "cam": "img/330_cam.jpg",
-   "prob": 0.0,
+   "id": 83,
+   "img": "img/83_orig.jpg",
+   "cam": "img/83_cam.jpg",
+   "prob": 0.039,
    "pred": "benign",
    "true": "malignant",
    "correct": false,
-   "age": 50.0,
-   "sex": "female",
-   "loc": "back",
-   "x": 0.779,
-   "y": 0.27
+   "age": 45.0,
+   "sex": "male",
+   "loc": "unknown",
+   "x": 0.8939,
+   "y": 0.4321,
+   "z": 0.4979
   },
   "confidently_false_alarm": {
-   "id": 401,
-   "img": "img/401_orig.jpg",
-   "cam": "img/401_cam.jpg",
-   "prob": 0.998,
+   "id": 465,
+   "img": "img/465_orig.jpg",
+   "cam": "img/465_cam.jpg",
+   "prob": 0.999,
    "pred": "malignant",
    "true": "benign",
    "correct": false,
    "age": 65.0,
    "sex": "male",
-   "loc": "back",
-   "x": 0.0326,
-   "y": 0.508
+   "loc": "upper extremity",
+   "x": 0.3113,
+   "y": 0.6172,
+   "z": 0.1942
   }
  }
 }

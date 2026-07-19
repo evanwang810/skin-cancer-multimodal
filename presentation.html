@@ -117,6 +117,8 @@
 <div class="progress" id="progress"></div>
 <a class="exitlink" href="index.html">&larr; explorer</a>
 <script src="report/data.js"></script>
+<script src="report/insights.js"></script>
+<script src="report/training.js"></script>
 
 <div class="deck" id="deck">
 
@@ -167,12 +169,12 @@
     <div class="eyebrow">Result</div>
     <h2 class="slidetitle">On 500 held-out test lesions</h2>
     <div class="statrow">
-      <div class="card stat hi"><div class="v">0.899</div><div class="l">AUC</div></div>
-      <div class="card stat"><div class="v">80.6%</div><div class="l">accuracy</div></div>
-      <div class="card stat"><div class="v">80.0%</div><div class="l">malignant recall</div></div>
-      <div class="card stat"><div class="v">81.0%</div><div class="l">precision</div></div>
+      <div class="card stat hi"><div class="v" id="h-auc">&ndash;</div><div class="l">AUC</div></div>
+      <div class="card stat"><div class="v" id="h-acc">&ndash;</div><div class="l">accuracy</div></div>
+      <div class="card stat"><div class="v" id="h-rec">&ndash;</div><div class="l">malignant recall</div></div>
+      <div class="card stat"><div class="v" id="h-prec">&ndash;</div><div class="l">precision</div></div>
     </div>
-    <div class="flagnote"><span class="m">&#9888;</span><span>The image-only vs. multimodal comparison from this run wasn't saved to a file (notebook outputs were cleared before export) — it lives in the notebook's own printed output, not reproduced here from memory. What follows is the multimodal model's real performance and where it does and doesn't work.</span></div>
+    <div class="flagnote"><span class="m">&#9888;</span><span id="h-note">These are the multimodal model's numbers on the balanced display sample. On the full held-out test set, image-only vs. multimodal AUC is available on the insights page.</span></div>
   </section>
 
   <!-- 7: Real example - correct -->
@@ -181,13 +183,13 @@
     <h2 class="slidetitle">Confidently, correctly malignant</h2>
     <div class="casewrap">
       <div class="caseimgs">
-        <figure><img src="report/img/96_orig.jpg" alt="dermoscopy photo, case 96"><figcaption>dermoscopy</figcaption></figure>
-        <figure><img src="report/img/96_cam.jpg" alt="Grad-CAM heatmap, case 96"><figcaption>grad-cam</figcaption></figure>
+        <figure><img id="ex1-orig" src="" alt="dermoscopy photo"><figcaption>dermoscopy</figcaption></figure>
+        <figure><img id="ex1-cam" src="" alt="Grad-CAM heatmap"><figcaption>grad-cam</figcaption></figure>
       </div>
       <div class="casemeta">
         <span class="casetag ok">correct</span>
-        <p class="lede">P(malignant) = <b>1.00</b>. The Grad-CAM heat sits on the lesion itself, not the surrounding skin — a sign the model is keying on the right region, not a background artifact.</p>
-        <div class="kv">age <b>65</b> &middot; male &middot; face</div>
+        <p class="lede">P(malignant) = <b id="ex1-prob">&ndash;</b>. The Grad-CAM heat sits on the lesion itself, not the surrounding skin — a sign the model is keying on the right region, not a background artifact.</p>
+        <div class="kv" id="ex1-kv">&ndash;</div>
       </div>
     </div>
   </section>
@@ -198,13 +200,13 @@
     <h2 class="slidetitle">Confidently, incorrectly benign</h2>
     <div class="casewrap">
       <div class="caseimgs">
-        <figure><img src="report/img/330_orig.jpg" alt="dermoscopy photo, case 330"><figcaption>dermoscopy</figcaption></figure>
-        <figure><img src="report/img/330_cam.jpg" alt="Grad-CAM heatmap, case 330"><figcaption>grad-cam</figcaption></figure>
+        <figure><img id="ex2-orig" src="" alt="dermoscopy photo"><figcaption>dermoscopy</figcaption></figure>
+        <figure><img id="ex2-cam" src="" alt="Grad-CAM heatmap"><figcaption>grad-cam</figcaption></figure>
       </div>
       <div class="casemeta">
         <span class="casetag no">missed</span>
-        <p class="lede">This lesion was <b>malignant</b>. The model gave it P(malignant) = <b>0.00</b> — not a borderline call, a confident miss. Cases like this are why recall and error analysis matter more than a single accuracy number.</p>
-        <div class="kv">age <b>50</b> &middot; female &middot; back</div>
+        <p class="lede">This lesion was <b>malignant</b>. The model gave it P(malignant) = <b id="ex2-prob">&ndash;</b> — not a borderline call, a confident miss. Cases like this are why recall and error analysis matter more than a single accuracy number.</p>
+        <div class="kv" id="ex2-kv">&ndash;</div>
       </div>
     </div>
   </section>
@@ -262,10 +264,10 @@
   <section class="slide bg-wash">
     <div class="eyebrow">Insight</div>
     <h2 class="slidetitle">Age carries real signal — and a real weakness</h2>
-    <p class="lede">Malignant rate climbs from <b>18.2%</b> under 30 to <b>74.5%</b> at 75+ in this sample — exactly the epidemiological pattern that gives the metadata encoder something real to use.</p>
+    <p class="lede">Malignant rate climbs from <b id="age-rate-young">&ndash;</b> under 30 to <b id="age-rate-old">&ndash;</b> at 75+ in this sample — exactly the epidemiological pattern that gives the metadata encoder something real to use.</p>
     <div class="bars">
-      <div class="barrow"><div class="lbl">recall, under 30</div><div class="track"><div class="fill" style="width:50%"></div></div><div class="val">50.0%</div></div>
-      <div class="barrow"><div class="lbl">recall, 75+</div><div class="track"><div class="fill" style="width:87.7%"></div></div><div class="val">87.7%</div></div>
+      <div class="barrow"><div class="lbl">recall, under 30</div><div class="track"><div class="fill" id="age-rec-young-bar" style="width:0%"></div></div><div class="val" id="age-rec-young">&ndash;</div></div>
+      <div class="barrow"><div class="lbl">recall, 75+</div><div class="track"><div class="fill" id="age-rec-old-bar" style="width:0%"></div></div><div class="val" id="age-rec-old">&ndash;</div></div>
     </div>
     <p class="lede" style="margin-top:18px; font-size:14px;">Younger malignant lesions are rarer in this data and get caught less often — the harder case, not the common one.</p>
   </section>
@@ -274,25 +276,16 @@
   <section class="slide bg-wash">
     <div class="eyebrow">Insight</div>
     <h2 class="slidetitle">Recall depends on where the lesion is</h2>
-    <div class="bars">
-      <div class="barrow"><div class="lbl">face (n=52)</div><div class="track"><div class="fill" style="width:92.1%"></div></div><div class="val">92.1%</div></div>
-      <div class="barrow"><div class="lbl">lower extr. (n=103)</div><div class="track"><div class="fill" style="width:87.8%"></div></div><div class="val">87.8%</div></div>
-      <div class="barrow"><div class="lbl">back (n=123)</div><div class="track"><div class="fill" style="width:80.6%"></div></div><div class="val">80.6%</div></div>
-      <div class="barrow"><div class="lbl">trunk (n=53)</div><div class="track"><div class="fill" style="width:66.7%"></div></div><div class="val">66.7%</div></div>
-      <div class="barrow"><div class="lbl">abdomen (n=38)</div><div class="track"><div class="fill" style="width:20%"></div></div><div class="val">20.0%</div></div>
-    </div>
-    <p class="lede" style="margin-top:18px; font-size:14px;">Abdomen recall (20%, n=10 malignant) is the weakest reliable signal in the data — a real gap, not noise, though still a small sample.</p>
+    <div class="bars" id="loc-bars"></div>
+    <p class="lede" style="margin-top:18px; font-size:14px;" id="loc-note">&ndash;</p>
   </section>
 
   <!-- 10: Insight - sex -->
   <section class="slide bg-wash">
     <div class="eyebrow">Insight</div>
     <h2 class="slidetitle">A recall gap by sex, observed but not explained</h2>
-    <p class="lede">Malignant recall is <b>85.2%</b> for male patients versus <b>71.6%</b> for female patients in this sample — a 14-point gap.</p>
-    <div class="bars">
-      <div class="barrow"><div class="lbl">male (n=282)</div><div class="track"><div class="fill" style="width:85.2%"></div></div><div class="val">85.2%</div></div>
-      <div class="barrow"><div class="lbl">female (n=218)</div><div class="track"><div class="fill" style="width:71.6%"></div></div><div class="val">71.6%</div></div>
-    </div>
+    <p class="lede">Malignant recall is <b id="sex-m">&ndash;</b> for male patients versus <b id="sex-f">&ndash;</b> for female patients in this sample — a <b id="sex-gap">&ndash;</b>-point gap.</p>
+    <div class="bars" id="sex-bars"></div>
     <div class="flagnote"><span class="m">&#9888;</span><span>This is an observed pattern in one 500-case sample, not a demonstrated cause. It could reflect which lesion types are more common by sex in this dataset rather than the model treating sexes differently — worth investigating further, not worth overclaiming.</span></div>
   </section>
 
@@ -300,11 +293,11 @@
   <section class="slide bg-wash">
     <div class="eyebrow">Insight</div>
     <h2 class="slidetitle">Confidence isn't proof</h2>
-    <p class="lede">On average the model is more confident when it's right than when it's wrong — a sign of reasonable calibration. But of its <b>97 errors</b> on this sample, <b>42 (43%)</b> were confidently wrong, not borderline calls like the case two slides back.</p>
+    <p class="lede">On average the model is more confident when it's right than when it's wrong — a sign of reasonable calibration. But of its <b id="cal-nwrong">&ndash;</b> errors on this sample, <b id="cal-cw">&ndash;</b> were confidently wrong, not borderline calls like the case two slides back.</p>
     <div class="statrow">
-      <div class="card stat"><div class="v">0.42</div><div class="l">avg. confidence, correct</div></div>
-      <div class="card stat"><div class="v">0.26</div><div class="l">avg. confidence, wrong</div></div>
-      <div class="card stat"><div class="v">43%</div><div class="l">of errors, confidently wrong</div></div>
+      <div class="card stat"><div class="v" id="cal-cc">&ndash;</div><div class="l">avg. confidence, correct</div></div>
+      <div class="card stat"><div class="v" id="cal-cwm">&ndash;</div><div class="l">avg. confidence, wrong</div></div>
+      <div class="card stat"><div class="v" id="cal-cwp">&ndash;</div><div class="l">of errors, confidently wrong</div></div>
     </div>
   </section>
 
@@ -420,6 +413,89 @@
     set("m-locs", topLocs || "–");
   }
   computeMisses();
+
+  // Populate every hardcoded-looking number from the exported data, so a retrain
+  // just updates the deck. Falls back to leaving placeholders if data is absent.
+  function populate() {
+    var ins = window.REPORT_INSIGHTS, meta = window.REPORT_META, tr = window.REPORT_TRAINING;
+    function set(id, v) { var e = document.getElementById(id); if (e && v != null) e.textContent = v; }
+    function pct(x) { return x == null ? "–" : (x * 100).toFixed(1) + "%"; }
+
+    if (ins && ins.overall) {
+      var o = ins.overall;
+      set("h-auc", o.auc != null ? o.auc.toFixed(3) : "–");
+      set("h-acc", pct(o.accuracy)); set("h-rec", pct(o.recall)); set("h-prec", pct(o.precision));
+    }
+    if (tr && tr.final) {
+      set("h-note", "Numbers above are on the balanced display sample. On the full held-out test set, image-only vs. multimodal AUC is " +
+        tr.final.image_only.auc.toFixed(3) + " vs. " + tr.final.multimodal.auc.toFixed(3) +
+        " — the full comparison table is on the insights page.");
+    }
+
+    // Example cases
+    function ex(prefix, c, probStr) {
+      if (!c) return;
+      var o = document.getElementById(prefix + "-orig"), m = document.getElementById(prefix + "-cam");
+      if (o) o.src = "report/" + c.img;
+      if (m) m.src = "report/" + c.cam;
+      set(prefix + "-prob", probStr(c.prob));
+      set(prefix + "-kv", "age " + (c.age == null ? "?" : c.age) + " · " + c.sex + " · " + c.loc);
+      var kv = document.getElementById(prefix + "-kv");
+      if (kv) kv.innerHTML = "age <b>" + (c.age == null ? "?" : c.age) + "</b> · " + c.sex + " · " + c.loc;
+    }
+    if (ins && ins.examples) {
+      ex("ex1", ins.examples.confident_correct_malignant, function (p) { return p.toFixed(2); });
+      ex("ex2", ins.examples.confidently_missed_malignant, function (p) { return p.toFixed(2); });
+    }
+
+    if (ins && ins.by_age) {
+      var young = ins.by_age.filter(function (b) { return b.bucket === "0-30"; })[0];
+      var old = ins.by_age.filter(function (b) { return b.bucket === "75+"; })[0];
+      if (young) { set("age-rate-young", (young.malignant_rate * 100).toFixed(1) + "%"); set("age-rec-young", pct(young.recall)); barW("age-rec-young-bar", young.recall); }
+      if (old) { set("age-rate-old", (old.malignant_rate * 100).toFixed(1) + "%"); set("age-rec-old", pct(old.recall)); barW("age-rec-old-bar", old.recall); }
+    }
+
+    if (ins && ins.by_location) {
+      var reliable = ins.by_location.filter(function (l) { return l.reliable && l.recall != null; });
+      var top = reliable.slice(0, 5);
+      var host = document.getElementById("loc-bars");
+      if (host) {
+        host.innerHTML = top.map(function (l) {
+          return '<div class="barrow"><div class="lbl">' + l.loc + ' (n=' + l.n + ')</div>' +
+            '<div class="track"><div class="fill" style="width:' + (l.recall * 100).toFixed(1) + '%"></div></div>' +
+            '<div class="val">' + (l.recall * 100).toFixed(1) + '%</div></div>';
+        }).join("");
+      }
+      var worst = reliable.slice().sort(function (a, b) { return a.recall - b.recall; })[0];
+      if (worst) set("loc-note", "Weakest reliable site: " + worst.loc + " at " + (worst.recall * 100).toFixed(0) +
+        "% recall (n=" + worst.n_malignant + " malignant) — a real gap, not noise, though still a modest sample.");
+    }
+
+    if (ins && ins.by_sex) {
+      var m = ins.by_sex.filter(function (s) { return s.sex === "male"; })[0];
+      var f = ins.by_sex.filter(function (s) { return s.sex === "female"; })[0];
+      if (m && f) {
+        set("sex-m", pct(m.recall)); set("sex-f", pct(f.recall));
+        set("sex-gap", Math.round(Math.abs(m.recall - f.recall) * 100));
+        var host = document.getElementById("sex-bars");
+        if (host) host.innerHTML =
+          '<div class="barrow"><div class="lbl">male (n=' + m.n + ')</div><div class="track"><div class="fill" style="width:' + (m.recall * 100).toFixed(1) + '%"></div></div><div class="val">' + pct(m.recall) + '</div></div>' +
+          '<div class="barrow"><div class="lbl">female (n=' + f.n + ')</div><div class="track"><div class="fill" style="width:' + (f.recall * 100).toFixed(1) + '%"></div></div><div class="val">' + pct(f.recall) + '</div></div>';
+      }
+    }
+
+    if (ins && ins.calibration) {
+      var c = ins.calibration;
+      set("cal-nwrong", c.n_wrong);
+      set("cal-cw", c.confidently_wrong + " (" + Math.round(c.confidently_wrong_pct) + "%)");
+      set("cal-cc", c.mean_confidence_correct.toFixed(2));
+      set("cal-cwm", c.mean_confidence_wrong.toFixed(2));
+      set("cal-cwp", Math.round(c.confidently_wrong_pct) + "%");
+    }
+
+    function barW(id, v) { var e = document.getElementById(id); if (e && v != null) e.style.width = (v * 100).toFixed(1) + "%"; }
+  }
+  populate();
 
   function show(n) {
     if (n < 1) n = 1;
