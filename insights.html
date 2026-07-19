@@ -332,15 +332,30 @@
 
     var td = t.test_distribution, dd = t.display_distribution;
     var tdMalPct = td.n ? (100 * td.n_malignant / td.n).toFixed(1) : "—";
+
+    // The number that actually moves with prevalence: precision. Contrast the
+    // balanced-display precision with precision on the natural distribution.
+    var insO = window.REPORT_INSIGHTS && window.REPORT_INSIGHTS.overall;
+    var precBal = insO ? insO.precision : null;
+    var precNat = t.final && t.final.multimodal ? t.final.multimodal.precision : null;
+    var precLine = "";
+    if (precBal != null && precNat != null) {
+      var falsePer10 = Math.round((1 - precNat) * 10);
+      precLine = " Precision shows this most sharply: <b>" + (precBal * 100).toFixed(0) +
+        "%</b> on the balanced sample but only <b>" + (precNat * 100).toFixed(0) + "%</b> at the real " +
+        tdMalPct + "% prevalence &mdash; so in actual use roughly <b>" + falsePer10 +
+        " in every 10</b> lesions the model flags as malignant would be false alarms. That's the honest real-world cost of setting the threshold low enough to catch most cancers (high recall), and it's exactly why a balanced sample flatters precision. Recall and AUC, by contrast, don't move with prevalence at all.";
+    }
+
     var note = document.createElement("p");
     note.className = "distnote";
     note.innerHTML =
       "These final numbers are on the <b>full held-out test set</b> (" + td.n + " images, " + tdMalPct +
       "% malignant) &mdash; the natural, imbalanced distribution. The 500 cases in the explorer and the rest of this page are <b>force-balanced " +
       Math.round(100 * dd.n_malignant / dd.n) + "/" + Math.round(100 * (dd.n - dd.n_malignant) / dd.n) +
-      "</b> so both classes are actually visible in the scatter. Balancing the <i>display</i> doesn't change the model &mdash; it only changes which cases you see. " +
-      "The accuracy and AUC above are the model's real performance; the decision threshold is tuned for a balanced sensitivity/specificity trade-off rather than to maximize raw accuracy, " +
-      "so the accuracy number understates how far it could be traded up by accepting more missed cancers. <b>AUC</b>, which ignores both class balance and the threshold, is the fairer single headline.";
+      "</b> so both classes are actually visible in the scatter. Balancing the <i>display</i> doesn't change the model &mdash; it only changes which cases you see." +
+      precLine +
+      " <b>AUC</b>, which ignores both class balance and the threshold, is the fairer single headline for the model's raw ability.";
     host.appendChild(note);
   }
 
