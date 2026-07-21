@@ -93,6 +93,36 @@
   .barrow .val { font-family: var(--mono); font-size: 12.5px; text-align: right; }
   .barrow.unreliable .track { border-style: dashed; }
 
+  /* Section divider */
+  .divlabel { font-family: var(--mono); font-size: clamp(11px,1.1vw,13px); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  .divrule { width: 88px; height: 4px; background: var(--accent); border-radius: 2px; margin-bottom: 20px; }
+  .divsub { color: var(--muted); font-size: clamp(15px,1.5vw,19px); line-height: 1.55; max-width: 54ch; margin: 16px 0 0; }
+
+  /* Problem (design-process) slides */
+  .problem { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,1fr); gap: clamp(28px,4vw,64px); align-items: start; margin-top: 6px; }
+  .steps { max-width: 560px; }
+  .stepblk { margin-bottom: 18px; }
+  .stepblk:last-child { margin-bottom: 0; }
+  .stepblk .k { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 5px; }
+  .stepblk.symptom .k { color: var(--malignant); }
+  .stepblk.cause .k { color: #e8a83b; }
+  .stepblk.fix .k { color: var(--good); }
+  .stepblk p { margin: 0; color: var(--muted); font-size: clamp(13px,1.35vw,15.5px); line-height: 1.5; }
+  .ba { display: flex; flex-direction: column; gap: 14px; }
+  .bacard { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .bacard .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+  .bacard.before .k { color: var(--malignant); }
+  .bacard.after .k { color: var(--good); }
+  .bacard.after.info .k { color: var(--benign); }
+  .bacard pre { margin: 0; font-family: var(--mono); font-size: clamp(12.5px,1.3vw,15px); line-height: 1.5; color: var(--ink); white-space: pre-wrap; }
+  .probtail { color: var(--faint); font-size: clamp(12px,1.2vw,14px); line-height: 1.45; margin: 22px 0 0; max-width: 78ch; }
+
+  /* Files (self-updating slide) */
+  .filerow { display: flex; gap: 16px; margin-top: 28px; flex-wrap: wrap; }
+  .filecard { flex: 1 1 240px; padding: 18px 20px; }
+  .filecard .fn { font-family: var(--mono); font-weight: 600; font-size: 15px; color: var(--accent); margin-bottom: 8px; }
+  .filecard .fd { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
   ul.limits { margin: 20px 0 0; padding: 0; list-style: none; max-width: 640px; }
   ul.limits li { position: relative; padding-left: 22px; margin-bottom: 12px; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
   ul.limits li::before { content: "—"; position: absolute; left: 0; color: var(--faint); }
@@ -161,6 +191,110 @@
       <div class="card step"><div class="n">3</div><div class="t">Fuse</div><div class="d">The two vectors are concatenated into one lesion representation.</div></div>
       <div class="step op">&rarr;</div>
       <div class="card step"><div class="n">4</div><div class="t">Classify</div><div class="d">One layer &rarr; P(malignant); threshold tuned on the validation set.</div></div>
+    </div>
+  </section>
+
+  <!-- Section divider: design process -->
+  <section class="slide bg-wash">
+    <div class="divlabel">Part two</div>
+    <div class="divrule"></div>
+    <h1 class="big">How it was built — and what broke</h1>
+    <p class="divsub">Four problems that shaped the final design. Each one changed a number, a decision, or a line of code.</p>
+  </section>
+
+  <!-- Problem 1: leakage -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Problem 1</div>
+    <h2 class="slidetitle">The 90% accuracy that wasn't real</h2>
+    <div class="problem">
+      <div class="steps">
+        <div class="stepblk symptom"><div class="k">Symptom</div><p>An early version scored above 90% and looked great — suspiciously great for this task.</p></div>
+        <div class="stepblk cause"><div class="k">Cause</div><p>The random train/test split let near-duplicate photos of the same lesion land on both sides. The model was partly memorizing lesions it had already seen.</p></div>
+        <div class="stepblk fix"><div class="k">Fix</div><p>Rebuilt the split to group by lesion ID before partitioning, so every lesion lives entirely in one of train, val, or test.</p></div>
+      </div>
+      <div class="ba">
+        <div class="bacard before"><div class="k">Before</div><pre>random split
+&gt; acc  ~0.90  (leaked)</pre></div>
+        <div class="bacard after"><div class="k">After</div><pre>lesion-grouped split
+&gt; acc  0.826  (honest)</pre></div>
+      </div>
+    </div>
+    <p class="probtail">The lower number is the real one. Every metric in this deck comes from the leakage-free split.</p>
+  </section>
+
+  <!-- Problem 2: accuracy back -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Problem 2</div>
+    <h2 class="slidetitle">Clawing accuracy back honestly</h2>
+    <div class="problem">
+      <div class="steps">
+        <div class="stepblk symptom"><div class="k">Symptom</div><p>Once the leak was gone, accuracy dropped to ~80%. The goal was to recover it without reintroducing leakage or overfitting the test set.</p></div>
+        <div class="stepblk cause"><div class="k">Cause</div><p>The image tower was under-fit: too small a fused feature space, a flat learning rate across pretrained and fresh layers, and a stray ReLU truncating the backbone's output.</p></div>
+        <div class="stepblk fix"><div class="k">Fix</div><p>Widened the fused vector (128 → 256), gave the backbone and the fresh head separate learning rates, and added test-time augmentation.</p></div>
+      </div>
+      <div class="ba">
+        <div class="bacard before"><div class="k">Before</div><pre>FEAT_DIM   128
+single LR
+no TTA</pre></div>
+        <div class="bacard after"><div class="k">After</div><pre>FEAT_DIM   256
+discriminative LR
+TTA (h-flip avg)</pre></div>
+      </div>
+    </div>
+    <p class="probtail">Small, defensible levers — not test-set fishing. The honest number recovered to ~0.82 accuracy, AUC 0.90+.</p>
+  </section>
+
+  <!-- Problem 3: grad-cam -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Problem 3</div>
+    <h2 class="slidetitle">The fix that broke Grad-CAM</h2>
+    <div class="problem">
+      <div class="steps">
+        <div class="stepblk symptom"><div class="k">Symptom</div><p>After the accuracy work, the Grad-CAM cell crashed — the interpretability view that shows where the model is looking stopped rendering.</p></div>
+        <div class="stepblk cause"><div class="k">Cause</div><p>Removing that truncating ReLU also removed a Sequential wrapper around the backbone. The Grad-CAM hook still reached in through the old index and hit nothing.</p></div>
+        <div class="stepblk fix"><div class="k">Fix</div><p>Traced the hook target to the new module path and pointed it at the real final conv block. One line — but only found by following the earlier change downstream.</p></div>
+      </div>
+      <div class="ba">
+        <div class="bacard before"><div class="k">Before</div><pre>net[0].layer4
+&gt; TypeError
+  (not subscriptable)</pre></div>
+        <div class="bacard after info"><div class="k">After</div><pre>net.layer4
+&gt; hook attached
+&gt; heatmaps render</pre></div>
+      </div>
+    </div>
+    <p class="probtail">A reminder that a clean-looking refactor upstream can silently break something three cells down.</p>
+  </section>
+
+  <!-- Problem 4: realistic split -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Problem 4</div>
+    <h2 class="slidetitle">Is a 50/50 malignant split even realistic?</h2>
+    <div class="problem">
+      <div class="steps">
+        <div class="stepblk symptom"><div class="k">Symptom</div><p>The explorer shows a balanced 250/250 sample, which is easy to read — but real clinics don't see 50% malignant lesions. Does the balance flatter the model?</p></div>
+        <div class="stepblk cause"><div class="k">Cause</div><p>Accuracy and the display balance are the wrong thing to worry about. Recall and AUC don't move with prevalence at all — but precision does, sharply.</p></div>
+        <div class="stepblk fix"><div class="k">Fix</div><p>Kept the display balanced for exploration, but computed the honest metrics on the full natural test set and foregrounded precision-at-real-prevalence on the insights page.</p></div>
+      </div>
+      <div class="ba">
+        <div class="bacard before"><div class="k">Before</div><pre id="p4-before">balanced sample
+precision  —</pre></div>
+        <div class="bacard after info"><div class="k">After</div><pre id="p4-after">real prevalence
+precision  —</pre></div>
+      </div>
+    </div>
+    <p class="probtail">Recall and AUC are the prevalence-independent truth; precision is where the real-world cost shows up.</p>
+  </section>
+
+  <!-- Design decision: self-updating -->
+  <section class="slide bg-wash">
+    <div class="eyebrow">Design decision</div>
+    <h2 class="slidetitle">The site updates itself on every retrain</h2>
+    <p class="lede">Nothing in this presentation or the website is a hardcoded number. Retraining the notebook re-exports three data files, and every page — explorer, insights, and this deck — reads its figures straight from them. Change the model, rerun, and the whole showcase re-states itself.</p>
+    <div class="filerow">
+      <div class="card filecard"><div class="fn">data.js</div><div class="fd">500 test cases: image, Grad-CAM, prediction, PCA coordinates, metadata</div></div>
+      <div class="card filecard"><div class="fn">insights.js</div><div class="fd">mined breakdowns by age, sex, location, calibration, error analysis</div></div>
+      <div class="card filecard"><div class="fn">training.js</div><div class="fd">per-epoch curves plus both models' final metrics at natural prevalence</div></div>
     </div>
   </section>
 
@@ -430,6 +564,16 @@
       set("h-note", "Numbers above are on the balanced display sample. On the full held-out test set, image-only vs. multimodal AUC is " +
         tr.final.image_only.auc.toFixed(3) + " vs. " + tr.final.multimodal.auc.toFixed(3) +
         " — the full comparison table is on the insights page.");
+    }
+
+    // Problem 4: precision at balanced vs. natural prevalence
+    if (ins && ins.overall && tr && tr.final && tr.test_distribution) {
+      var precBal = Math.round(ins.overall.precision * 100);
+      var precNat = Math.round(tr.final.multimodal.precision * 100);
+      var natRate = Math.round(tr.test_distribution.n_malignant / tr.test_distribution.n * 100);
+      var falseShare = Math.round((1 - tr.final.multimodal.precision) * 10);
+      set("p4-before", "balanced sample\nprecision  " + precBal + "%  (reads clean)");
+      set("p4-after", "real " + natRate + "% prevalence\nprecision  " + precNat + "%\n(~" + falseShare + " in 10 flags false)");
     }
 
     // Example cases
